@@ -1,7 +1,7 @@
 {
   "name": "marco-cli",
   "description": "Fetch list of projects which are ready for a release",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "bin": {
 	  "marco": "bin/marco"
   },
@@ -10,11 +10,11 @@
   "private": false,
   "scripts": {
 	"lint": "tslint ./src/**/*.ts",
-    "prebuild": "npm run lint",
+    "prebuild": "yarn lint",
 	"build": "webpack",
-	"prebuild:production": "npm run lint",
+	"prebuild:production": "yarn lint",
 	"build:production": "webpack --config webpack.production.js",
-	"prepare": "npm run build:production",
+	"prepare": "yarn build:production",
     "clean": "n-clean dist"
   },
   "devDependencies": {

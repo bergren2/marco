@@ -3,7 +3,7 @@
   "description": "Fetch list of projects which are ready for a release",
   "version": "0.0.1",
   "bin": "bin/marco",
-  "author": "Randy Ehret <randyehret@gmail.com>",
+  "author": "Randy Ehret <randallehret@gmail.com>",
   "license": "MIT",
   "private": true,
   "scripts": {

@@ -10,11 +10,11 @@
   "private": false,
   "scripts": {
 	"lint": "tslint ./src/**/*.ts",
-    "prebuild": "npm lint",
+    "prebuild": "npm run lint",
 	"build": "webpack",
-	"prebuild:production": "npm lint",
+	"prebuild:production": "npm run lint",
 	"build:production": "webpack --config webpack.production.js",
-	"prepare": "npm build:production",
+	"prepare": "npm run build:production",
     "clean": "n-clean dist"
   },
   "devDependencies": {

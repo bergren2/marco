@@ -3,30 +3,34 @@
   "description": "Fetch list of projects which are ready for a release",
   "version": "0.0.7",
   "bin": {
-	  "marco": "bin/marco"
+    "marco": "bin/marco"
   },
   "author": "Randy Ehret <randallehret@gmail.com>",
   "license": "MIT",
   "private": false,
   "scripts": {
-	"lint": "tslint ./src/**/*.ts",
+    "lint": "tslint ./src/**/*.ts",
     "prebuild": "yarn lint",
-	"build": "webpack",
-	"prebuild:production": "yarn lint",
-	"build:production": "webpack --config webpack.production.js",
-	"prepare": "yarn clean && yarn build:production",
-	"start": "node bin/marco",
+    "build": "webpack",
+    "prebuild:production": "yarn lint",
+    "build:production": "webpack --config webpack.production.js",
+    "prepare": "yarn clean && yarn build:production",
+    "start": "node bin/marco",
     "clean": "n-clean dist"
+  },
+  "dependencies": {
+	"commander": "^2.15.1",
+    "inversify": "^4.13.0",
+    "reflect-metadata": "^0.1.12",
+	"rimraf": "^2.6.2",
+	"simple-git": "^1.92.0"
   },
   "devDependencies": {
     "@types/commander": "^2.12.2",
     "@types/node": "^10.0.8",
     "@types/rimraf": "^2.0.2",
     "awesome-typescript-loader": "^5.0.0",
-    "commander": "^2.15.1",
     "npm-build-tools": "^2.2.5",
-    "rimraf": "^2.6.2",
-    "simple-git": "^1.92.0",
     "tslint": "^5.10.0",
     "typescript": "^2.8.3",
     "webpack": "^4.8.3",

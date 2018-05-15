@@ -8,12 +8,12 @@
 		"ordered-imports": false,
 		"quotemark": [true, "single"],
 		"no-unused-expression": false,
-		"no-console": false,
 		"no-var-requires": false,
 		"indent": [
 			true,
 			"tabs"
-		]
+		],
+		"trailing-comma": false
 	},
     "defaultSeverity": "error"
 }

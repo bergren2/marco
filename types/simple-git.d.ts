@@ -1,9 +1,11 @@
+type SimpleGitStatic = (workingDirectory?: string) => SimpleGitInstance;
+
 declare module "simple-git" {
-	function init(workingDirectory?: string): SimpleGit;
+	const init: SimpleGitStatic;
 	export default init;
 }
 
-declare class SimpleGit {
+declare class SimpleGitInstance {
 	public clone(repoPath: string): Promise<void>;
 	public clone(repoPath: string, localPath: string): Promise<void>;
 	public clone(repoPath: string, options: string[]): Promise<void>;

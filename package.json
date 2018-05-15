@@ -5,7 +5,7 @@
   "bin": "bin/marco",
   "author": "Randy Ehret <randallehret@gmail.com>",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "scripts": {
 	"lint": "tslint ./src/**/*.ts",
     "prebuild": "yarn lint",

@@ -1,0 +1,14 @@
+{
+    "extends": [
+        "tslint:recommended"
+	],
+	"rules": {
+		"object-literal-sort-keys": false,
+		"member-ordering": false,
+		"ordered-imports": false,
+		"quotemark": [true, "single"],
+		"no-unused-expression": false,
+		"no-console": false
+	},
+    "defaultSeverity": "error"
+}

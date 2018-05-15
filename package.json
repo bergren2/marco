@@ -2,7 +2,9 @@
   "name": "marco-cli",
   "description": "Fetch list of projects which are ready for a release",
   "version": "0.0.1",
-  "bin": "bin/marco",
+  "bin": {
+	  "marco": "bin/marco"
+  },
   "author": "Randy Ehret <randallehret@gmail.com>",
   "license": "MIT",
   "private": false,

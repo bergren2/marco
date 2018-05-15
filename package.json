@@ -1,7 +1,7 @@
 {
   "name": "marco-cli",
   "description": "Fetch list of projects which are ready for a release",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "bin": {
 	  "marco": "bin/marco"
   },

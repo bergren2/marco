@@ -5,12 +5,15 @@ module.exports = {
 
     output: {
         path: path.resolve('./dist'),
-        filename: 'marco.js'
+		filename: 'marco.js',
+		library: 'marco',
+		libraryExport: 'default',
+		libraryTarget: 'commonjs2'
     },
 
     target: 'node',
 
-    mode: 'production',
+    mode: 'development',
 
     devtool: 'source-map',
 

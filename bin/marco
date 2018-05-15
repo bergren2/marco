@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+"use strict";
+
+const fs = require('fs');
+const path = require('path');
+
+const libPath = path.resolve(path.dirname(fs.realpathSync(__filename)), '../dist');
+const marco = require(`${libPath}/marco.js`);
+
+marco.parse(process.argv);

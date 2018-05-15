@@ -1,0 +1,30 @@
+{
+  "name": "marco",
+  "description": "Fetch list of projects which are ready for a release",
+  "version": "0.0.1",
+  "main": "dist/marco",
+  "author": "Randy Ehret <randallehret@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "prebuild": "tslint ./src/**/*.ts",
+    "build": "webpack",
+    "postbuild": "nexe dist/marco.js -o dist/marco -t 9.5.0",
+    "clean": "n-clean dist"
+  },
+  "devDependencies": {
+    "@types/commander": "^2.12.2",
+    "@types/node": "^10.0.8",
+    "@types/rimraf": "^2.0.2",
+    "awesome-typescript-loader": "^5.0.0",
+    "commander": "^2.15.1",
+    "nexe": "^2.0.0-rc.28",
+    "npm-build-tools": "^2.2.5",
+    "rimraf": "^2.6.2",
+    "simple-git": "^1.92.0",
+    "tslint": "^5.10.0",
+    "typescript": "^2.8.3",
+    "webpack": "^4.8.3",
+    "webpack-cli": "^2.1.3"
+  }
+}

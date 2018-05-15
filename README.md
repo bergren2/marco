@@ -5,7 +5,7 @@ After configuring all managed repositories, this tool will list the projects whi
 
 ## Assumptions
 - Target repo is hosted on [GitHub](https://github.com)
-- User has [configured an SSH key with GitHub]https://help.github.com/articles/connecting-to-github-with-ssh/)
+- User has [configured an SSH key with GitHub](https://help.github.com/articles/connecting-to-github-with-ssh/)
 - Target repo uses tags for versioning
 - Target repo uses SemVer
 

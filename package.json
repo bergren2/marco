@@ -14,8 +14,7 @@
 	"build": "webpack",
 	"prebuild:production": "yarn lint",
 	"build:production": "webpack --config webpack.production.js",
-	"preprepare": "yarn clean",
-	"prepare": "yarn build:production",
+	"prepare": "yarn clean && yarn build:production",
     "clean": "n-clean dist"
   },
   "devDependencies": {

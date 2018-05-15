@@ -1,3 +1,5 @@
+[![Build Status](https://api.travis-ci.org/rehret/marco.svg?branch=master)](https://travis-ci.org/rehret/marco)
+
 # Marco
 Simple CLI tool for fetching list of projects which are ready for a release.
 

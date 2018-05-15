@@ -1,5 +1,5 @@
 {
-  "name": "marco",
+  "name": "marco-cli",
   "description": "Fetch list of projects which are ready for a release",
   "version": "0.0.1",
   "bin": "bin/marco",

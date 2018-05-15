@@ -15,6 +15,7 @@
 	"prebuild:production": "yarn lint",
 	"build:production": "webpack --config webpack.production.js",
 	"prepare": "yarn clean && yarn build:production",
+	"start": "node bin/marco",
     "clean": "n-clean dist"
   },
   "devDependencies": {

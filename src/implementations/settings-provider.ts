@@ -11,7 +11,7 @@ export class SettingsProvider implements ISettingsProvider {
 		return this.directory;
 	}
 
-	private static readonly RepoConfigFilename: string = 'repos.json';
+	private static readonly repoConfigFilename: string = 'repos.json';
 
 	private readonly fs: FsModule;
 	private readonly path: PathModule;
@@ -24,7 +24,7 @@ export class SettingsProvider implements ISettingsProvider {
 	}
 
 	public IsFirstRun(): boolean {
-		return !this.fs.existsSync(this.path.resolve(this.Directory, SettingsProvider.RepoConfigFilename));
+		return !this.fs.existsSync(this.path.resolve(this.Directory, SettingsProvider.repoConfigFilename));
 	}
 
 	public async Init(): Promise<void> {
@@ -34,7 +34,7 @@ export class SettingsProvider implements ISettingsProvider {
 
 	public GetRepos(): RepoSetting[] {
 		const repoJson = this.fs.readFileSync(
-			this.path.resolve(this.Directory, SettingsProvider.RepoConfigFilename),
+			this.path.resolve(this.Directory, SettingsProvider.repoConfigFilename),
 			'utf-8'
 		);
 		return JSON.parse(repoJson);
@@ -90,15 +90,16 @@ export class SettingsProvider implements ISettingsProvider {
 	private SetRepos(repos: RepoSetting[]): Promise<void> {
 		return new Promise((resolve, reject) => {
 			const file = this.fs.createWriteStream(
-				this.path.resolve(this.Directory, SettingsProvider.RepoConfigFilename),
+				this.path.resolve(this.Directory, SettingsProvider.repoConfigFilename),
 				'utf-8'
 			);
 			file.write(JSON.stringify(repos), (err: any) => {
 				file.close();
 				if (err) {
 					reject(err);
+				} else {
+					resolve();
 				}
-				resolve();
 			});
 		});
 	}

@@ -1,0 +1,23 @@
+{
+    "reporter": [
+        "lcov",
+        "text"
+    ],
+    "require": [
+        "ts-node/register",
+        "reflect-metadata"
+    ],
+    "extension": [
+        ".ts"
+    ],
+    "all": true,
+    "include": [
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "spec/**/*.ts",
+        "src/*.ts",
+		"src/**/*.interface.ts",
+		"types"
+    ]
+}

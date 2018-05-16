@@ -3,6 +3,6 @@ node_js:
   - "9"
 cache:
   yarn: true
-script: yarn build:production
+script: yarn build:production && yarn test && yarn test:coverage --reporter=min && yarn nyc report --reporter=text-lcov | yarn coveralls
 notifications:
   email: false

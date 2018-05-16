@@ -8,12 +8,19 @@
 		"ordered-imports": false,
 		"quotemark": [true, "single"],
 		"no-unused-expression": false,
-		"no-console": false,
 		"no-var-requires": false,
 		"indent": [
 			true,
 			"tabs"
-		]
+		],
+		"trailing-comma": false,
+		"variable-name": [
+			true,
+			"ban-keywords",
+			"check-format",
+			"allow-leading-underscore"
+		],
+		"no-string-literal": false
 	},
     "defaultSeverity": "error"
 }

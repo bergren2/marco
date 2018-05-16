@@ -9,7 +9,15 @@ module.exports = {
 		library: 'marco',
 		libraryExport: 'default',
 		libraryTarget: 'commonjs2'
-    },
+	},
+
+	externals: {
+		commander: 'commander',
+		inversify: 'inversify',
+		reflectMetadata: 'reflect-metadata',
+		rimraf: 'rimraf',
+		simpleGit: 'simple-git'
+	},
 
     target: 'node',
 

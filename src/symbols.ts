@@ -3,7 +3,7 @@ export const TYPES = {
 	FsModule: Symbol.for('fs'),
 	PathModule: Symbol.for('path'),
 	ReadlineModule: Symbol.for('readline'),
-	Console: Symbol.for('StdOut'),
+	Console: Symbol.for('Console'),
 	SimpleGit: Symbol.for('SimpleGit'),
 	RimrafModule: Symbol.for('rimraf'),
 	GitService: Symbol.for('GitService'),

@@ -5,6 +5,10 @@
   "bin": {
     "marco": "bin/marco"
   },
+  "files": [
+	  "bin/",
+	  "dist/"
+  ],
   "author": "Randy Ehret <randallehret@gmail.com>",
   "license": "MIT",
   "private": false,

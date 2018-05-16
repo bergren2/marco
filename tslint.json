@@ -19,7 +19,8 @@
 			"ban-keywords",
 			"check-format",
 			"allow-leading-underscore"
-		]
+		],
+		"no-string-literal": false
 	},
     "defaultSeverity": "error"
 }

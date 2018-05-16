@@ -6,6 +6,44 @@ import { PathModule } from '../../types/path';
 import { SettingsProvider } from '../../src/implementations/settings-provider';
 
 describe('SettingsProvider', () => {
+	describe('Directory', () => {
+		let userprofileBackup: string | undefined;
+		let homeBackup: string | undefined;
+
+		before(() => {
+			userprofileBackup = process.env['USERPROFILE'];
+			homeBackup = process.env['HOME'];
+		});
+
+		after(() => {
+			process.env['USERPROFILE'] = userprofileBackup;
+			process.env['HOME'] = homeBackup;
+		});
+
+		it('should be initialized based on environment', () => {
+			// Arrange
+			const fsMock = Mock.ofType<FsModule>();
+			const pathMock = Mock.ofType<PathModule>();
+
+			const homeFolder = '/some/folder';
+
+			process.env['USERPROFILE'] = homeFolder;
+			process.env['HOME'] = homeFolder;
+
+			pathMock
+				.setup((x) => x.resolve(It.isAnyString(), It.isAnyString()))
+				.returns((str1, str2) => `${str1}/${str2}`);
+
+			const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+			// Act
+			const directory = settingsProvider.Directory;
+
+			// Assert
+			expect(directory).to.equal(`${homeFolder}/.marco`);
+		});
+	});
+
 	describe('IsFirstRun', () => {
 		it('should return a boolean', () => {
 			// Arrange
@@ -256,10 +294,7 @@ describe('SettingsProvider', () => {
 			const result = await settingsProvider.AddRepo(repo);
 
 			// Assert
-			fileMock.verify((x) => x.write(
-				It.is((content) => content === JSON.stringify([repo])),
-				It.isAny()
-			), Times.never());
+			fileMock.verify((x) => x.write(It.isAnyString(), It.isAny()), Times.never());
 			expect(result).to.be.false;
 		});
 
@@ -302,6 +337,153 @@ describe('SettingsProvider', () => {
 				It.is((content) => content === JSON.stringify([repo, repos[0]])),
 				It.isAny()
 			), Times.once());
+		});
+	});
+
+	describe('UpdateRepo', () => {
+		it('should update the repo if the repo already exists', async () => {
+			// Arrange
+			const fsMock = Mock.ofType<FsModule>();
+			const pathMock = Mock.ofType<PathModule>();
+			const fileMock = Mock.ofType<WriteStream>();
+
+			const repo: RepoSetting = { user: 'user', repo: 'repo', base: 'base' };
+			const extraRepo: RepoSetting = { user: 'user2', repo: 'repo2', base: 'base' };
+			const updatedRepo: RepoSetting = { user: 'user', repo: 'repo', base: 'new-base' };
+			const repos: RepoSetting[] = [repo, extraRepo];
+
+			pathMock.setup((x) => x.resolve(It.isAnyString(), It.isAnyString())).returns(() => '');
+			fsMock
+				.setup((x) => x.readFileSync(It.isAnyString(), It.isAnyString()))
+				.returns(() => JSON.stringify(repos));
+
+			fsMock
+				.setup((x) => x.createWriteStream(It.isAnyString(), It.isAnyString()))
+				.returns(() => fileMock.object);
+
+			fileMock
+				.setup((x) => x.write(It.isAnyString(), It.isAny()))
+				.callback((_content, cb) => cb(null))
+				.returns(() => true);
+
+			const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+			// Act
+			const result = await settingsProvider.UpdateRepo(updatedRepo);
+
+			// Assert
+			fileMock.verify((x) => x.write(
+				It.is((content) => content === JSON.stringify([updatedRepo, extraRepo])),
+				It.isAny()
+			), Times.once());
+			expect(result).to.be.true;
+		});
+
+		it('should not update the repo if the repo does not exist', async () => {
+			// Arrange
+			const fsMock = Mock.ofType<FsModule>();
+			const pathMock = Mock.ofType<PathModule>();
+			const fileMock = Mock.ofType<WriteStream>();
+
+			const extraRepo: RepoSetting = { user: 'user2', repo: 'repo2', base: 'base' };
+			const updatedRepo: RepoSetting = { user: 'user', repo: 'repo', base: 'new-base' };
+			const repos: RepoSetting[] = [extraRepo];
+
+			pathMock.setup((x) => x.resolve(It.isAnyString(), It.isAnyString())).returns(() => '');
+			fsMock
+				.setup((x) => x.readFileSync(It.isAnyString(), It.isAnyString()))
+				.returns(() => JSON.stringify(repos));
+
+			fsMock
+				.setup((x) => x.createWriteStream(It.isAnyString(), It.isAnyString()))
+				.returns(() => fileMock.object);
+
+			fileMock
+				.setup((x) => x.write(It.isAnyString(), It.isAny()))
+				.callback((_content, cb) => cb(null))
+				.returns(() => true);
+
+			const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+			// Act
+			const result = await settingsProvider.UpdateRepo(updatedRepo);
+
+			// Assert
+			fileMock.verify((x) => x.write(It.isAnyString(), It.isAny()), Times.never());
+			expect(result).to.be.false;
+		});
+	});
+
+	describe('RemoveRepo', () => {
+		it('should remove the repo if the repo already exists', async () => {
+			// Arrange
+			const fsMock = Mock.ofType<FsModule>();
+			const pathMock = Mock.ofType<PathModule>();
+			const fileMock = Mock.ofType<WriteStream>();
+
+			const repo: RepoSetting = { user: 'user', repo: 'repo', base: 'base' };
+			const extraRepo: RepoSetting = { user: 'user2', repo: 'repo2', base: 'base' };
+			const repos: RepoSetting[] = [repo, extraRepo];
+
+			pathMock.setup((x) => x.resolve(It.isAnyString(), It.isAnyString())).returns(() => '');
+			fsMock
+				.setup((x) => x.readFileSync(It.isAnyString(), It.isAnyString()))
+				.returns(() => JSON.stringify(repos));
+
+			fsMock
+				.setup((x) => x.createWriteStream(It.isAnyString(), It.isAnyString()))
+				.returns(() => fileMock.object);
+
+			fileMock
+				.setup((x) => x.write(It.isAnyString(), It.isAny()))
+				.callback((_content, cb) => cb(null))
+				.returns(() => true);
+
+			const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+			// Act
+			const result = await settingsProvider.RemoveRepo(repo);
+
+			// Assert
+			fileMock.verify((x) => x.write(
+				It.is((content) => content === JSON.stringify([extraRepo])),
+				It.isAny()
+			), Times.once());
+			expect(result).to.be.true;
+		});
+
+		it('should not remove the repo if the repo does not exist', async () => {
+			// Arrange
+			const fsMock = Mock.ofType<FsModule>();
+			const pathMock = Mock.ofType<PathModule>();
+			const fileMock = Mock.ofType<WriteStream>();
+
+			const repo: RepoSetting = { user: 'user', repo: 'repo', base: 'base' };
+			const extraRepo: RepoSetting = { user: 'user2', repo: 'repo2', base: 'base' };
+			const repos: RepoSetting[] = [extraRepo];
+
+			pathMock.setup((x) => x.resolve(It.isAnyString(), It.isAnyString())).returns(() => '');
+			fsMock
+				.setup((x) => x.readFileSync(It.isAnyString(), It.isAnyString()))
+				.returns(() => JSON.stringify(repos));
+
+			fsMock
+				.setup((x) => x.createWriteStream(It.isAnyString(), It.isAnyString()))
+				.returns(() => fileMock.object);
+
+			fileMock
+				.setup((x) => x.write(It.isAnyString(), It.isAny()))
+				.callback((_content, cb) => cb(null))
+				.returns(() => true);
+
+			const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+			// Act
+			const result = await settingsProvider.RemoveRepo(repo);
+
+			// Assert
+			fileMock.verify((x) => x.write(It.isAnyString(), It.isAny()), Times.never());
+			expect(result).to.be.false;
 		});
 	});
 });

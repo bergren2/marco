@@ -1,6 +1,7 @@
 {
   "name": "marco-cli",
   "description": "Fetch list of projects which are ready for a release",
+  "repository": "github:rehret/marco",
   "version": "0.0.7",
   "engines": {
 	  "node": "^8.0.0 || ^9.0.0"

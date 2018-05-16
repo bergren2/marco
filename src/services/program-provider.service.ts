@@ -114,7 +114,7 @@ export class ProgramProvider implements IProgramProvider {
 				if (await this.settings.RemoveRepo(repoSetting)) {
 					this.console.write(`Removed repo '${repoSetting.user}/${repoSetting.repo}'\n`);
 				} else {
-					this.console.write(`Warning: repo '${repoSetting.user}/${repoSetting.repo}' does not exist`);
+					this.console.write(`Warning: repo '${repoSetting.user}/${repoSetting.repo}' does not exist\n`);
 				}
 			});
 

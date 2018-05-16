@@ -6,8 +6,8 @@
     "marco": "bin/marco"
   },
   "files": [
-	  "bin/",
-	  "dist/"
+    "bin/",
+    "dist/"
   ],
   "author": "Randy Ehret <randallehret@gmail.com>",
   "license": "MIT",
@@ -23,19 +23,24 @@
     "clean": "n-clean dist"
   },
   "dependencies": {
-	"commander": "^2.15.1",
+    "commander": "^2.15.1",
     "inversify": "^4.13.0",
     "reflect-metadata": "^0.1.12",
-	"rimraf": "^2.6.2",
-	"simple-git": "^1.92.0"
+    "rimraf": "^2.6.2",
+    "simple-git": "^1.92.0"
   },
   "devDependencies": {
+    "@types/chai": "^4.1.3",
     "@types/commander": "^2.12.2",
+    "@types/mocha": "^5.2.0",
     "@types/node": "^10.0.8",
     "@types/rimraf": "^2.0.2",
     "awesome-typescript-loader": "^5.0.0",
+    "chai": "^4.1.2",
+    "mocha": "^5.1.1",
     "npm-build-tools": "^2.2.5",
     "tslint": "^5.10.0",
+    "typemoq": "^2.1.0",
     "typescript": "^2.8.3",
     "webpack": "^4.8.3",
     "webpack-cli": "^2.1.3"

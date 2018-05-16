@@ -9,12 +9,14 @@ import { FsModule } from '../types/fs';
 import { PathModule } from '../types/path';
 import { ReadlineModule } from '../types/readline';
 import { RimrafModule } from '../types/rimraf';
-import { IGitService } from './interfaces/git.interface';
-import { GitService } from './services/git.service';
+import { IGitService } from './interfaces/git-service.interface';
+import { GitService } from './implementations/git-service';
+import { IGithubService } from './interfaces/github-service.interface';
+import { GithubService } from './implementations/github-service';
 import { ISettingsProvider } from './interfaces/settings-provider.interface';
-import { SettingsProvider } from './services/settings-provider.service';
+import { SettingsProvider } from './implementations/settings-provider';
 import { IProgramProvider } from './interfaces/program-provider.interface';
-import { ProgramProvider } from './services/program-provider.service';
+import { ProgramProvider } from './implementations/program-provider';
 
 const container = new Container();
 
@@ -28,7 +30,8 @@ container.bind<SimpleGitStatic>(TYPES.SimpleGit).toConstantValue(SimpleGit);
 container.bind<RimrafModule>(TYPES.RimrafModule).toConstantValue(rimraf);
 
 // Internal Dependencies
-container.bind<IGitService>(TYPES.Git).to(GitService);
+container.bind<IGitService>(TYPES.GitService).to(GitService);
+container.bind<IGithubService>(TYPES.GithubService).to(GithubService);
 container.bind<ISettingsProvider>(TYPES.SettingsProvider).to(SettingsProvider);
 container.bind<IProgramProvider>(TYPES.Program).to(ProgramProvider);
 

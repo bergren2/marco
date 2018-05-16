@@ -6,7 +6,8 @@ export const TYPES = {
 	Console: Symbol.for('StdOut'),
 	SimpleGit: Symbol.for('SimpleGit'),
 	RimrafModule: Symbol.for('rimraf'),
-	Git: Symbol.for('Git'),
+	GitService: Symbol.for('GitService'),
+	GithubService: Symbol.for('GithubService'),
 	SettingsProvider: Symbol.for('SettingsProvider'),
 	Program: Symbol.for('Program')
 };

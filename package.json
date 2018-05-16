@@ -13,6 +13,7 @@
   "license": "MIT",
   "private": false,
   "scripts": {
+	"test": "mocha -r ts-node/register -r reflect-metadata spec/**/*.spec.ts",
     "lint": "tslint ./src/**/*.ts",
     "prebuild": "yarn lint",
     "build": "webpack",
@@ -39,6 +40,7 @@
     "chai": "^4.1.2",
     "mocha": "^5.1.1",
     "npm-build-tools": "^2.2.5",
+    "ts-node": "^6.0.3",
     "tslint": "^5.10.0",
     "typemoq": "^2.1.0",
     "typescript": "^2.8.3",

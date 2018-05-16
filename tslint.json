@@ -13,7 +13,13 @@
 			true,
 			"tabs"
 		],
-		"trailing-comma": false
+		"trailing-comma": false,
+		"variable-name": [
+			true,
+			"ban-keywords",
+			"check-format",
+			"allow-leading-underscore"
+		]
 	},
     "defaultSeverity": "error"
 }

@@ -13,13 +13,13 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-	"test": "mocha -r ts-node/register -r reflect-metadata spec/**/*.spec.ts",
+    "test": "mocha -r ts-node/register -r reflect-metadata spec/**/*.spec.ts",
     "lint": "tslint ./src/**/*.ts",
     "prebuild": "yarn lint",
     "build": "webpack",
     "prebuild:production": "yarn lint",
     "build:production": "webpack --config webpack.production.js",
-    "prepare": "yarn clean && yarn build:production",
+    "prepublishOnly": "yarn clean && yarn build:production",
     "start": "node bin/marco",
     "clean": "n-clean dist"
   },

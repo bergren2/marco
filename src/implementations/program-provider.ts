@@ -8,7 +8,7 @@ import { RimrafModule } from '../../types/rimraf';
 import { TYPES } from '../symbols';
 import { IProgramProvider } from '../interfaces/program-provider.interface';
 import { ISettingsProvider } from '../interfaces/settings-provider.interface';
-import { IGitService } from '../interfaces/git.interface';
+import { IGitService } from '../interfaces/git-service.interface';
 
 @injectable()
 export class ProgramProvider implements IProgramProvider {
@@ -29,7 +29,7 @@ export class ProgramProvider implements IProgramProvider {
 		@inject(TYPES.PathModule) path: PathModule,
 		@inject(TYPES.RimrafModule) rimraf: RimrafModule,
 		@inject(TYPES.SettingsProvider) settings: ISettingsProvider,
-		@inject(TYPES.Git) git: IGitService
+		@inject(TYPES.GitService) git: IGitService
 	) {
 		this.package = packageJson;
 		this.console = console;

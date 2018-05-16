@@ -1,20 +1,25 @@
 import { injectable, inject } from 'inversify';
-import { IGitService } from '../interfaces/git.interface';
+import { IGitService } from '../interfaces/git-service.interface';
 import { TYPES } from '../symbols';
-import * as GitHubHelpers from './github.service';
+import { IGithubService } from '../interfaces/github-service.interface';
 
 @injectable()
 export class GitService implements IGitService {
 	private readonly git: SimpleGitStatic;
+	private readonly githubService: IGithubService;
 
-	constructor(@inject(TYPES.SimpleGit) git: SimpleGitStatic) {
+	constructor(
+		@inject(TYPES.SimpleGit) git: SimpleGitStatic,
+		@inject(TYPES.GithubService) githubService: IGithubService
+	) {
 		this.git = git;
+		this.githubService = githubService;
 	}
 
 	public CloneRepo(repoSetting: RepoSetting, destination: string, options?: string[]): Promise<string> {
 		return new Promise((resolve, reject) => {
 			const git = this.git(destination);
-			const repoUrl = GitHubHelpers.GetRepoUrl(repoSetting);
+			const repoUrl = this.githubService.GetRepoUrl(repoSetting);
 			git.clone(repoUrl, options as string[], (err) => {
 				if (err) {
 					reject(err);

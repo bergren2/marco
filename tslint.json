@@ -20,7 +20,13 @@
 			"check-format",
 			"allow-leading-underscore"
 		],
-		"no-string-literal": false
+		"no-string-literal": false,
+		"max-line-length": [
+			true,
+			{
+				"ignore-pattern": "`"
+			}
+		]
 	},
     "defaultSeverity": "error"
 }

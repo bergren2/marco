@@ -1,6 +1,7 @@
 import program from 'commander';
 import { CommanderStatic } from 'commander';
 import { injectable, inject } from 'inversify';
+import 'colors';
 import { ReadlineModule } from '../../types/readline';
 import { FsModule } from '../../types/fs';
 import { PathModule } from '../../types/path';
@@ -43,6 +44,7 @@ export class ProgramProvider implements IProgramProvider {
 
 	public Init(): CommanderStatic {
 		program
+			.option('--no-color', 'Disable colorized output')
 			.version(this.package.version, '-v, --version');
 
 		program
@@ -64,7 +66,7 @@ export class ProgramProvider implements IProgramProvider {
 				const repos = this.settings.GetRepos();
 				if (repos.length > 0) {
 					repos.forEach((repoSetting) => {
-						this.console.write(`${repoSetting.user}/${repoSetting.repo} [${repoSetting.base}]\n`);
+						this.console.write(`${this.StringifyRepoSetting(repoSetting, true)}\n`);
 					});
 				}
 			});
@@ -79,9 +81,9 @@ export class ProgramProvider implements IProgramProvider {
 
 				const repo = ProgramProvider.ParseRepoArg(repoArg, base);
 				if (await this.settings.AddRepo(repo)) {
-					this.console.write(`Added repo '${repo.user}/${repo.repo}'\n`);
+					this.console.write(`Added repo '${this.StringifyRepoSetting(repo)}'\n`);
 				} else {
-					this.console.write(`Warning: repo '${repo.user}/${repo.repo}' already exists\n`);
+					this.console.write(`${'Warning'.yellow}: repo '${this.StringifyRepoSetting(repo)}' already exists\n`);
 				}
 			});
 
@@ -95,10 +97,9 @@ export class ProgramProvider implements IProgramProvider {
 
 				const repoSetting = ProgramProvider.ParseRepoArg(repoArg, base);
 				if (await this.settings.UpdateRepo(repoSetting)) {
-					// tslint:disable-next-line:max-line-length
-					this.console.write(`Updated repo '${repoSetting.user}/${repoSetting.repo}' with base branch '${repoSetting.base}'\n`);
+					this.console.write(`Updated repo '${this.StringifyRepoSetting(repoSetting)}' with base branch '${repoSetting.base}'\n`);
 				} else {
-					this.console.write(`Warning: repo '${repoSetting.user}/${repoSetting.repo}' does not exist\n`);
+					this.console.write(`${'Warning'.yellow}: repo '${this.StringifyRepoSetting(repoSetting)}' does not exist\n`);
 				}
 			});
 
@@ -112,9 +113,9 @@ export class ProgramProvider implements IProgramProvider {
 
 				const repoSetting = ProgramProvider.ParseRepoArg(repoArg);
 				if (await this.settings.RemoveRepo(repoSetting)) {
-					this.console.write(`Removed repo '${repoSetting.user}/${repoSetting.repo}'\n`);
+					this.console.write(`Removed repo '${this.StringifyRepoSetting(repoSetting)}'\n`);
 				} else {
-					this.console.write(`Warning: repo '${repoSetting.user}/${repoSetting.repo}' does not exist\n`);
+					this.console.write(`${'Warning'.yellow}: repo '${this.StringifyRepoSetting(repoSetting)}' does not exist\n`);
 				}
 			});
 
@@ -133,7 +134,7 @@ export class ProgramProvider implements IProgramProvider {
 				try {
 					for (let i = 0; i < repos.length; i++) {
 						const repo = repos[i];
-						this.WriteTempMessage(`Cloning repo ${i + 1}/${repos.length}: '${repo.user}/${repo.repo}'`);
+						this.WriteTempMessage(`Cloning repo ${i + 1}/${repos.length}: '${this.StringifyRepoSetting(repo)}'`);
 
 						const repoPath = await this.git.CloneRepo(repo, tempFolderPath, ['--bare']);
 						if (await this.git.HasChanges(repoPath, repo)) {
@@ -146,10 +147,14 @@ export class ProgramProvider implements IProgramProvider {
 
 				this.WriteTempMessage('');
 				this.CleanUpTempFolders();
-				releases.forEach((repoSetting) => this.console.write(`${repoSetting.user}/${repoSetting.repo}\n`));
+				releases.forEach((repoSetting) => this.console.write(`${this.StringifyRepoSetting(repoSetting)}\n`));
 			});
 
 		return program;
+	}
+
+	private StringifyRepoSetting(repoSetting: RepoSetting, includeBase: boolean = false): string {
+		return `${repoSetting.user}${'/'.gray}${repoSetting.repo}${includeBase ? ` [${repoSetting.base}]`.gray : ''}`;
 	}
 
 	private async Initialize(force: boolean = false): Promise<void> {

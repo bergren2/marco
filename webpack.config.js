@@ -12,6 +12,7 @@ module.exports = {
 	},
 
 	externals: {
+		colors: 'colors',
 		commander: 'commander',
 		inversify: 'inversify',
 		reflectMetadata: 'reflect-metadata',

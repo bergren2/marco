@@ -142,6 +142,7 @@ export class ProgramProvider implements IProgramProvider {
 						}
 					}
 				} catch (ex) {
+					this.console.write(`ERROR: ${ex}`.red);
 					releases.splice(0);
 				}
 

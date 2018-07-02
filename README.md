@@ -35,7 +35,7 @@ yarn install
 #### Local Development
 ```bash
 yarn build
-node dist/marco.js
+bin/marco
 ```
 
 #### Guidelines

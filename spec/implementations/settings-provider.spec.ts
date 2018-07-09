@@ -486,4 +486,26 @@ describe('SettingsProvider', () => {
 			expect(result).to.be.false;
 		});
 	});
+
+	describe('Export', () => {
+		it('should return the exact contents of config file', async () => {
+			// Arrange
+			const fsMock = Mock.ofType<FsModule>();
+			const pathMock = Mock.ofType<PathModule>();
+			const config = '[{"user": "user", "repo": "repo", "base": "base"}]';
+
+			pathMock.setup((x) => x.resolve(It.isAnyString(), It.isAnyString())).returns(() => '');
+			fsMock
+				.setup((x) => x.readFileSync(It.isAnyString(), It.isAnyString()))
+				.returns(() => config);
+
+			const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+			// Act
+			const result = await settingsProvider.Export();
+
+			// Assert
+			expect(result).to.equal(config);
+		});
+	});
 });

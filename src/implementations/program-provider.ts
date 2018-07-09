@@ -120,6 +120,20 @@ export class ProgramProvider implements IProgramProvider {
 			});
 
 		program
+			.command('export')
+			.description('Write configuration file to stdout')
+			.option('-p, --pretty', 'Pretty-print config')
+			.action(async (args: any) => {
+				if (this.settings.IsFirstRun()) {
+					await this.Initialize();
+				}
+
+				const config = await this.settings.Export();
+				const output = args.pretty ? JSON.stringify(JSON.parse(config), undefined, 4) : config;
+				this.console.write(`${output}\n`);
+			});
+
+		program
 			.command('polo')
 			.description('Fetches release information')
 			.action(async () => {

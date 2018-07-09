@@ -120,6 +120,17 @@ export class ProgramProvider implements IProgramProvider {
 			});
 
 		program
+			.command('import <config>')
+			.description('Replace configuration with config from stdin')
+			.action(async (configString: string) => {
+				if (this.settings.IsFirstRun()) {
+					await this.Initialize();
+				}
+
+				await this.settings.Import(configString);
+			});
+
+		program
 			.command('export')
 			.description('Write configuration file to stdout')
 			.option('-p, --pretty', 'Pretty-print config')

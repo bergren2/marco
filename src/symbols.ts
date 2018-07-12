@@ -9,5 +9,5 @@ export const TYPES = {
 	GitService: Symbol.for('GitService'),
 	GithubService: Symbol.for('GithubService'),
 	SettingsProvider: Symbol.for('SettingsProvider'),
-	Program: Symbol.for('Program')
+	ProgramProvider: Symbol.for('Program')
 };

@@ -1,5 +1,3 @@
-import program from 'commander';
-import { CommanderStatic } from 'commander';
 import { injectable, inject } from 'inversify';
 import 'colors';
 import { ReadlineModule } from '../../types/readline';
@@ -42,142 +40,94 @@ export class ProgramProvider implements IProgramProvider {
 		this.git = git;
 	}
 
-	public Init(): CommanderStatic {
-		program
-			.option('--no-color', 'Disable colorized output')
-			.version(this.package.version, '-v, --version');
+	public get Version(): string {
+		return this.package.version;
+	}
 
-		program
-			.command('init')
-			.description('Initialize user settings')
-			.option('-f, --force', 'Force reinitialization')
-			.action(async (args: any) => {
-				await this.Initialize(args.force);
+	public async Init(force?: boolean): Promise<void> {
+		return await this.Initialize(force);
+	}
+
+	public async List(): Promise<void> {
+		if (this.settings.IsFirstRun()) {
+			await this.Initialize();
+		}
+
+		const repos = this.settings.GetRepos();
+		if (repos.length > 0) {
+			repos.forEach((repoSetting) => {
+				this.console.write(`${this.StringifyRepoSetting(repoSetting, true)}\n`);
 			});
+		}
+	}
 
-		program
-			.command('list')
-			.description('List all repositories')
-			.action(async () => {
-				if (this.settings.IsFirstRun()) {
-					await this.Initialize();
+	public async Add(repoArg: string, base?: string): Promise<void> {
+		if (this.settings.IsFirstRun()) {
+			await this.Initialize();
+		}
+
+		const repo = ProgramProvider.ParseRepoArg(repoArg, base);
+		if (await this.settings.AddRepo(repo)) {
+			this.console.write(`Added repo '${this.StringifyRepoSetting(repo)}'\n`);
+		} else {
+			this.console.write(`${'Warning'.yellow}: repo '${this.StringifyRepoSetting(repo)}' already exists\n`);
+		}
+	}
+
+	public async Update(repoArg: string, base: string): Promise<void> {
+		if (this.settings.IsFirstRun()) {
+			await this.Initialize();
+		}
+
+		const repoSetting = ProgramProvider.ParseRepoArg(repoArg, base);
+		if (await this.settings.UpdateRepo(repoSetting)) {
+			this.console.write(`Updated repo '${this.StringifyRepoSetting(repoSetting)}' with base branch '${repoSetting.base}'\n`);
+		} else {
+			this.console.write(`${'Warning'.yellow}: repo '${this.StringifyRepoSetting(repoSetting)}' does not exist\n`);
+		}
+	}
+
+	public async Remove(repoArg: string): Promise<void> {
+		if (this.settings.IsFirstRun()) {
+			await this.Initialize();
+		}
+
+		const repoSetting = ProgramProvider.ParseRepoArg(repoArg);
+		if (await this.settings.RemoveRepo(repoSetting)) {
+			this.console.write(`Removed repo '${this.StringifyRepoSetting(repoSetting)}'\n`);
+		} else {
+			this.console.write(`${'Warning'.yellow}: repo '${this.StringifyRepoSetting(repoSetting)}' does not exist\n`);
+		}
+	}
+
+	public async Execute(): Promise<void> {
+		if (this.settings.IsFirstRun()) {
+			await this.Initialize();
+		}
+
+		const tempFolderPath = this.fs.mkdtempSync(`${this.settings.Directory}/temp`);
+		const repos = this.settings.GetRepos();
+		const releases: RepoSetting[] = [];
+
+		try {
+			for (let i = 0; i < repos.length; i++) {
+				const repo = repos[i];
+				this.WriteTempMessage(`Cloning repo ${i + 1}/${repos.length}: '${this.StringifyRepoSetting(repo)}'`);
+
+				const repoPath = await this.git.CloneRepo(repo, tempFolderPath, ['--bare']);
+				if (await this.git.HasChanges(repoPath, repo)) {
+					releases.push(repo);
 				}
+			}
+		} catch (ex) {
+			this.WriteTempMessage('');
+			this.console.write(ex.toString().red);
+			releases.splice(0);
+		}
 
-				const repos = this.settings.GetRepos();
-				if (repos.length > 0) {
-					repos.forEach((repoSetting) => {
-						this.console.write(`${this.StringifyRepoSetting(repoSetting, true)}\n`);
-					});
-				}
-			});
-
-		program
-			.command('add <user>/<repo> [base]')
-			.description('Add a repository')
-			.action(async (repoArg: string, base: string) => {
-				if (this.settings.IsFirstRun()) {
-					await this.Initialize();
-				}
-
-				const repo = ProgramProvider.ParseRepoArg(repoArg, base);
-				if (await this.settings.AddRepo(repo)) {
-					this.console.write(`Added repo '${this.StringifyRepoSetting(repo)}'\n`);
-				} else {
-					this.console.write(`${'Warning'.yellow}: repo '${this.StringifyRepoSetting(repo)}' already exists\n`);
-				}
-			});
-
-		program
-			.command('update <user>/<repo> <base>')
-			.description('Update a repository\'s base branch')
-			.action(async (repoArg: string, base: string) => {
-				if (this.settings.IsFirstRun()) {
-					await this.Initialize();
-				}
-
-				const repoSetting = ProgramProvider.ParseRepoArg(repoArg, base);
-				if (await this.settings.UpdateRepo(repoSetting)) {
-					this.console.write(`Updated repo '${this.StringifyRepoSetting(repoSetting)}' with base branch '${repoSetting.base}'\n`);
-				} else {
-					this.console.write(`${'Warning'.yellow}: repo '${this.StringifyRepoSetting(repoSetting)}' does not exist\n`);
-				}
-			});
-
-		program
-			.command('remove <user>/<repo>')
-			.description('Remove a repository')
-			.action(async (repoArg: string) => {
-				if (this.settings.IsFirstRun()) {
-					await this.Initialize();
-				}
-
-				const repoSetting = ProgramProvider.ParseRepoArg(repoArg);
-				if (await this.settings.RemoveRepo(repoSetting)) {
-					this.console.write(`Removed repo '${this.StringifyRepoSetting(repoSetting)}'\n`);
-				} else {
-					this.console.write(`${'Warning'.yellow}: repo '${this.StringifyRepoSetting(repoSetting)}' does not exist\n`);
-				}
-			});
-
-		program
-			.command('import <config>')
-			.description('Replace configuration with config from stdin')
-			.action(async (configString: string) => {
-				if (this.settings.IsFirstRun()) {
-					await this.Initialize();
-				}
-
-				await this.settings.Import(configString);
-			});
-
-		program
-			.command('export')
-			.description('Write configuration file to stdout')
-			.option('-p, --pretty', 'Pretty-print config')
-			.action(async (args: any) => {
-				if (this.settings.IsFirstRun()) {
-					await this.Initialize();
-				}
-
-				const config = await this.settings.Export();
-				const output = args.pretty ? JSON.stringify(JSON.parse(config), undefined, 4) : config;
-				this.console.write(`${output}\n`);
-			});
-
-		program
-			.command('polo')
-			.description('Fetches release information')
-			.action(async () => {
-				if (this.settings.IsFirstRun()) {
-					await this.Initialize();
-				}
-
-				const tempFolderPath = this.fs.mkdtempSync(`${this.settings.Directory}/temp`);
-				const repos = this.settings.GetRepos();
-				const releases: RepoSetting[] = [];
-
-				try {
-					for (let i = 0; i < repos.length; i++) {
-						const repo = repos[i];
-						this.WriteTempMessage(`Cloning repo ${i + 1}/${repos.length}: '${this.StringifyRepoSetting(repo)}'`);
-
-						const repoPath = await this.git.CloneRepo(repo, tempFolderPath, ['--bare']);
-						if (await this.git.HasChanges(repoPath, repo)) {
-							releases.push(repo);
-						}
-					}
-				} catch (ex) {
-					this.WriteTempMessage('');
-					this.console.write(ex.toString().red);
-					releases.splice(0);
-				}
-
-				this.WriteTempMessage('');
-				this.CleanUpTempFolders();
-				releases.forEach((repoSetting) => this.console.write(`${this.StringifyRepoSetting(repoSetting)}\n`));
-			});
-
-		return program;
+		this.WriteTempMessage('');
+		this.CleanUpTempFolders();
+		releases.forEach((repoSetting) => this.console.write(`${this.StringifyRepoSetting(repoSetting)}\n`));
 	}
 
 	private StringifyRepoSetting(repoSetting: RepoSetting, includeBase: boolean = false): string {

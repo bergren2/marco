@@ -33,6 +33,6 @@ container.bind<RimrafModule>(TYPES.RimrafModule).toConstantValue(rimraf);
 container.bind<IGitService>(TYPES.GitService).to(GitService);
 container.bind<IGithubService>(TYPES.GithubService).to(GithubService);
 container.bind<ISettingsProvider>(TYPES.SettingsProvider).to(SettingsProvider);
-container.bind<IProgramProvider>(TYPES.Program).to(ProgramProvider);
+container.bind<IProgramProvider>(TYPES.ProgramProvider).to(ProgramProvider);
 
 export { container };

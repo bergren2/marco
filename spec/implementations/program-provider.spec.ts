@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import { IMock, Mock, Times, It } from 'typemoq';
 import colors from 'colors';
 import { ProgramProvider } from '../../src/implementations/program-provider';
@@ -39,6 +40,19 @@ describe('ProgramProvider', () => {
 			settingsMock.object,
 			gitMock.object
 		);
+	});
+
+	describe('Version', () => {
+		it('should provide number from package.json', () => {
+			// Arrange
+			packageMock.setup((x) => x.version).returns(() => '1.2.3');
+
+			// Act
+			const version = program.Version;
+
+			// Assert
+			expect(version).to.be.a('string').that.equals('1.2.3');
+		});
 	});
 
 	describe('Init', () => {
@@ -445,8 +459,8 @@ describe('ProgramProvider', () => {
 			// Arrange
 			settingsMock.setup((x) => x.GetRepos()).returns(() => []);
 			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => [
-				'/temp1',
-				'/temp2'
+				'temp1',
+				'temp2'
 			]);
 			pathMock.setup((x) => x.resolve(It.isAny(), It.isAnyString()))
 				.returns((_directory, file) => file);
@@ -456,8 +470,88 @@ describe('ProgramProvider', () => {
 
 			// Assert
 			rimrafMock.verify((x) => x.sync(
-				It.is((path: string) => path === '/temp1' || path === '/temp2')
+				It.is((path: string) => path === 'temp1' || path === 'temp2')
 			), Times.exactly(2));
+		});
+
+		it('should not clean up non-temp folders when complete', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.GetRepos()).returns(() => []);
+			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => [
+				'temp1',
+				'temp2',
+				'config'
+			]);
+			pathMock.setup((x) => x.resolve(It.isAny(), It.isAnyString()))
+				.returns((_directory, file) => file);
+
+			// Act
+			await program.Execute();
+
+			// Assert
+			rimrafMock.verify((x) => x.sync(
+				It.is((path: string) => path === 'temp1' || path === 'temp2')
+			), Times.exactly(2));
+			rimrafMock.verify((x) => x.sync(
+				It.is((path: string) => path === 'config')
+			), Times.never());
+		});
+
+		it('should write error message when there was a problem checking a repo', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.GetRepos()).returns(() => [
+				{
+					user: 'user',
+					repo: 'repo',
+					base: 'base'
+				}
+			]);
+			gitMock.setup((x) => x.CloneRepo(It.isAny(), It.isAny(), It.isAny()))
+				.returns(async () => {
+					throw new Error('The error message');
+				});
+			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => []);
+
+			// Act
+			await program.Execute();
+
+			// Assert
+			consoleMock.verify((x) => x.write(
+				It.is((message: string) => message === 'Error: The error message')
+			), Times.once());
+		});
+
+		it('should clear matched repos if an error is encountered', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.GetRepos()).returns(() => [
+				{
+					user: 'user1',
+					repo: 'repo1',
+					base: 'base1'
+				},
+				{
+					user: 'user2',
+					repo: 'repo2',
+					base: 'base2'
+				}
+			]);
+			gitMock.setup((x) => x.CloneRepo(It.isAny(), It.isAny(), It.isAny()))
+				.returns(async () => '/temp');
+			gitMock.setup((x) => x.CloneRepo(It.isAny(), It.isAny(), It.isAny()))
+				.returns(async () => {
+					throw new Error('The error message');
+				});
+			gitMock.setup((x) => x.HasChanges(It.isAny(), It.isAny())).returns(async () => true);
+			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => []);
+			colors.disable();
+
+			// Act
+			await program.Execute();
+
+			// Assert
+			consoleMock.verify((x) => x.write(
+				It.is((message: string) => message === 'user1/repo1\n' || message === 'user2/repo2\n')
+			), Times.never());
 		});
 	});
 });

@@ -3,7 +3,7 @@
 
 #### Contents
 - [Guidelines](#Guidelines)
-- [Pull Request Process](#Pull%20Request%20Process)
+- [Pull Request Process](#Pull-Request-Process)
 - [Versioning](#Versioning)
 
 #### Guidelines

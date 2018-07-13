@@ -1,8 +1,8 @@
 ## Table of Contents
 - [Local Development](local-development.md)
   - [Setup](local-development.md#Setup)
-  - [VSCode Configuration](local-development.md#VSCode%20Configuration)
+  - [VSCode Configuration](local-development.md#VSCode-Configuration)
 - [Contributing](contributing.md)
   - [Guidelines](contributing.md#Guidelines)
-  - [Pull Request Process](contributing.md#Pull%20Request%20Process)
+  - [Pull Request Process](contributing.md#Pull-Request-Process)
   - [Versioning](contributing.md#Versioning)

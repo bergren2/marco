@@ -1,7 +1,7 @@
 ## Local Development
 #### Contents
-- [Setup](#Setup)
-- [VSCode Configuration](#VSCode-Configuration)
+- [Setup](#setup)
+- [VSCode Configuration](#vscode-configuration)
 
 ## Setup
 [NodeJS](https://nodejs.org/) is required. It can be installed [here](https://nodejs.org/en/download/).

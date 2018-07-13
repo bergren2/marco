@@ -2,9 +2,9 @@
 **Be sure to read the [setup guide](local-development.md#Setup)!**
 
 #### Contents
-- [Guidelines](#Guidelines)
-- [Pull Request Process](#Pull-Request-Process)
-- [Versioning](#Versioning)
+- [Guidelines](#guidelines)
+- [Pull Request Process](#pull-request-process)
+- [Versioning](#versioning)
 
 #### Guidelines
 Make sure you have [tslint](https://www.npmjs.com/package/tslint) installed globally. This project is linted before each build. All code contributions should have zero linting errors.

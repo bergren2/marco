@@ -402,7 +402,7 @@ describe('ProgramProvider', () => {
 			gitMock.setup((x) => x.CloneRepo(It.isAny(), It.isAnyString(), It.isAny()))
 				.returns(async () => '/temp');
 			gitMock.setup((x) => x.HasChanges(It.isAnyString(), It.isAny()))
-				.returns(async (_path, repo) => repo.repo === 'repo1');
+				.returns(async (_path, repo) => repo.repo === 'repo1' || repo.repo === 'repo2');
 			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => []);
 			colors.disable();
 
@@ -411,8 +411,53 @@ describe('ProgramProvider', () => {
 
 			// Assert
 			consoleMock.verify((x) => x.write(
-				It.is((message: string) => message === 'user1/repo1\n')
-			), Times.once());
+				It.is((message: string) => message === 'user1/repo1\n' || message === 'user2/repo2\n')
+			), Times.exactly(2));
+		});
+
+		it('should initialize settings if not previously initialized', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.IsFirstRun()).returns(() => true);
+			settingsMock.setup((x) => x.GetRepos()).returns(() => []);
+			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => []);
+
+			// Act
+			await program.Execute();
+
+			// Assert
+			settingsMock.verify((x) => x.Init(), Times.once());
+		});
+
+		it('should not initialize settings if previously initialized', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
+			settingsMock.setup((x) => x.GetRepos()).returns(() => []);
+			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => []);
+
+			// Act
+			await program.Execute();
+
+			// Assert
+			settingsMock.verify((x) => x.Init(), Times.never());
+		});
+
+		it('should clean up temp folder when complete', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.GetRepos()).returns(() => []);
+			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => [
+				'/temp1',
+				'/temp2'
+			]);
+			pathMock.setup((x) => x.resolve(It.isAny(), It.isAnyString()))
+				.returns((_directory, file) => file);
+
+			// Act
+			await program.Execute();
+
+			// Assert
+			rimrafMock.verify((x) => x.sync(
+				It.is((path: string) => path === '/temp1' || path === '/temp2')
+			), Times.exactly(2));
 		});
 	});
 });

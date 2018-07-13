@@ -486,4 +486,103 @@ describe('SettingsProvider', () => {
 			expect(result).to.be.false;
 		});
 	});
+
+	describe('Import', () => {
+		it('should write given config to config file', async () => {
+			// Arrange
+			const fsMock = Mock.ofType<FsModule>();
+			const pathMock = Mock.ofType<PathModule>();
+			const fileMock = Mock.ofType<WriteStream>();
+			const config = '[{"user": "user", "repo": "repo", "base": "base"}]';
+
+			pathMock.setup((x) => x.resolve(It.isAnyString(), It.isAnyString())).returns(() => '');
+			fsMock
+				.setup((x) => x.createWriteStream(It.isAnyString(), It.isAnyString()))
+				.returns(() => fileMock.object);
+			fileMock
+				.setup((x) => x.write(It.isAnyString(), It.isAny()))
+				.callback((_content, cb) => cb(null))
+				.returns(() => true);
+
+			const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+			// Act
+			await settingsProvider.Import(config);
+
+			// Assert
+			fileMock.verify((x) => x.write(It.is((str) => str === config), It.isAny()), Times.once());
+		});
+
+		it('should call .close() on the file handler', async () => {
+			// Arrange
+			const fsMock = Mock.ofType<FsModule>();
+			const pathMock = Mock.ofType<PathModule>();
+			const fileMock = Mock.ofType<WriteStream>();
+			const config = '[{"user": "user", "repo": "repo", "base": "base"}]';
+
+			pathMock.setup((x) => x.resolve(It.isAnyString(), It.isAnyString())).returns(() => '');
+			fsMock
+				.setup((x) => x.createWriteStream(It.isAnyString(), It.isAnyString()))
+				.returns(() => fileMock.object);
+			fileMock
+				.setup((x) => x.write(It.isAnyString(), It.isAny()))
+				.callback((_content, cb) => cb(null))
+				.returns(() => true);
+
+			const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+			// Act
+			await settingsProvider.Import(config);
+
+			// Assert
+			fileMock.verify((x) => x.close(), Times.once());
+		});
+
+		it('should reject if there was an error writing to the file', (done) => {
+			// Arrange
+			const fsMock = Mock.ofType<FsModule>();
+			const pathMock = Mock.ofType<PathModule>();
+			const fileMock = Mock.ofType<WriteStream>();
+			const config = '[{"user": "user", "repo": "repo", "base": "base"}]';
+
+			pathMock.setup((x) => x.resolve(It.isAnyString(), It.isAnyString())).returns(() => '');
+			fsMock
+				.setup((x) => x.createWriteStream(It.isAnyString(), It.isAnyString()))
+				.returns(() => fileMock.object);
+			fileMock
+				.setup((x) => x.write(It.isAnyString(), It.isAny()))
+				.callback((_content, cb) => cb('Error'))
+				.returns(() => true);
+
+			const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+			// Act
+			const importPromise = settingsProvider.Import(config);
+
+			// Assert
+			expect(importPromise).to.eventually.be.rejected.and.notify(done);
+		});
+	});
+
+	describe('Export', () => {
+		it('should return the exact contents of config file', async () => {
+			// Arrange
+			const fsMock = Mock.ofType<FsModule>();
+			const pathMock = Mock.ofType<PathModule>();
+			const config = '[{"user": "user", "repo": "repo", "base": "base"}]';
+
+			pathMock.setup((x) => x.resolve(It.isAnyString(), It.isAnyString())).returns(() => '');
+			fsMock
+				.setup((x) => x.readFileSync(It.isAnyString(), It.isAnyString()))
+				.returns(() => config);
+
+			const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+			// Act
+			const result = await settingsProvider.Export();
+
+			// Assert
+			expect(result).to.equal(config);
+		});
+	});
 });

@@ -73,6 +73,33 @@ export class SettingsProvider implements ISettingsProvider {
 		return false;
 	}
 
+	public async Import(config: string): Promise<void> {
+		return new Promise<void>((resolve, reject) => {
+			const file = this.fs.createWriteStream(
+				this.path.resolve(this.Directory, SettingsProvider.repoConfigFilename),
+				'utf-8'
+			);
+
+			file.write(config, (err: any) => {
+				file.close();
+				if (err) {
+					reject(err);
+				} else {
+					resolve();
+				}
+			});
+		});
+	}
+
+	public async Export(): Promise<string> {
+		const repoJson = this.fs.readFileSync(
+			this.path.resolve(this.Directory, SettingsProvider.repoConfigFilename),
+			'utf-8'
+		);
+
+		return repoJson;
+	}
+
 	private CreateDirectory(): void {
 		if (!this.fs.existsSync(this.Directory)) {
 			this.fs.mkdirSync(this.Directory);

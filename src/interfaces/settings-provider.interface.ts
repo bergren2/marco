@@ -12,4 +12,8 @@ export interface ISettingsProvider {
 	UpdateRepo(repoSetting: RepoSetting): Promise<boolean>;
 
 	RemoveRepo(repoSetting: RepoSetting): Promise<boolean>;
+
+	Import(config: string): Promise<void>;
+
+	Export(): Promise<string>;
 }

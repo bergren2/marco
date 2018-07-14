@@ -9,26 +9,53 @@ describe('SettingsProvider', () => {
 	describe('Directory', () => {
 		let userprofileBackup: string | undefined;
 		let homeBackup: string | undefined;
+		let platformBackup: NodeJS.Platform;
 
 		before(() => {
 			userprofileBackup = process.env['USERPROFILE'];
 			homeBackup = process.env['HOME'];
+			platformBackup = process.platform;
 		});
 
 		after(() => {
 			process.env['USERPROFILE'] = userprofileBackup;
 			process.env['HOME'] = homeBackup;
+			Object.defineProperty(process, 'platform', { value: platformBackup });
 		});
 
-		it('should be initialized based on environment', () => {
+		['linux', 'win32'].forEach((env) => {
+			it(`should be initialized based on environment (env: ${env})`, () => {
+				// Arrange
+				Object.defineProperty(process, 'platform', { value: env });
+				const fsMock = Mock.ofType<FsModule>();
+				const pathMock = Mock.ofType<PathModule>();
+
+				const homeFolder = '/some/folder';
+
+				process.env['USERPROFILE'] = homeFolder;
+				process.env['HOME'] = homeFolder;
+
+				pathMock
+					.setup((x) => x.resolve(It.isAnyString(), It.isAnyString()))
+					.returns((str1, str2) => `${str1}/${str2}`);
+
+				const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+				// Act
+				const directory = settingsProvider.Directory;
+
+				// Assert
+				expect(directory).to.equal(`${homeFolder}/.marco`);
+			});
+		});
+
+		it('should default to current directory if unable to get user\'s home directory', () => {
 			// Arrange
 			const fsMock = Mock.ofType<FsModule>();
 			const pathMock = Mock.ofType<PathModule>();
 
-			const homeFolder = '/some/folder';
-
-			process.env['USERPROFILE'] = homeFolder;
-			process.env['HOME'] = homeFolder;
+			delete process.env['USERPROFILE'];
+			delete process.env['HOME'];
 
 			pathMock
 				.setup((x) => x.resolve(It.isAnyString(), It.isAnyString()))
@@ -40,7 +67,7 @@ describe('SettingsProvider', () => {
 			const directory = settingsProvider.Directory;
 
 			// Assert
-			expect(directory).to.equal(`${homeFolder}/.marco`);
+			expect(directory).to.equal('./.marco');
 		});
 	});
 

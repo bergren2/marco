@@ -537,7 +537,7 @@ describe('SettingsProvider', () => {
 			await settingsProvider.Import(config);
 
 			// Assert
-			fileMock.verify((x) => x.write(It.is((str) => str === config), It.isAny()), Times.once());
+			fileMock.verify((x) => x.write(It.is((str) => str === JSON.stringify(JSON.parse(config))), It.isAny()), Times.once());
 		});
 
 		it('should call .close() on the file handler', async () => {

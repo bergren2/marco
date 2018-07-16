@@ -80,6 +80,9 @@ export class SettingsProvider implements ISettingsProvider {
 				'utf-8'
 			);
 
+			// remove extra whitespace from input JSON
+			config = JSON.stringify(JSON.parse(config));
+
 			file.write(config, (err: any) => {
 				file.close();
 				if (err) {

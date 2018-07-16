@@ -100,6 +100,24 @@ export class ProgramProvider implements IProgramProvider {
 		}
 	}
 
+	public async Import(config: string): Promise<void> {
+		if (this.settings.IsFirstRun()) {
+			await this.Initialize();
+		}
+
+		await this.settings.Import(config);
+	}
+
+	public async Export(prettyPrint: boolean | undefined = false) {
+		if (this.settings.IsFirstRun()) {
+			await this.Initialize();
+		}
+
+		const config = await this.settings.Export();
+		const output = prettyPrint ? JSON.stringify(JSON.parse(config), undefined, 4) : config;
+		this.console.write(`${output}\n`);
+	}
+
 	public async Execute(): Promise<void> {
 		if (this.settings.IsFirstRun()) {
 			await this.Initialize();

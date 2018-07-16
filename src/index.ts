@@ -38,13 +38,20 @@ const programProvider = container.get<IProgramProvider>(TYPES.ProgramProvider);
 		.action(async (repoArg: string) => await programProvider.Remove(repoArg));
 
 	program
+		.command('import <config>')
+		.description('Replace configuration with config from stdin')
+		.action(async (repoJson: string) => await programProvider.Import(repoJson));
+
+	program
+		.command('export')
+		.description('Write configuration to stdout')
+		.option('-p, --pretty', 'Pretty-print config')
+		.action(async (args: any) => await programProvider.Export(args.pretty));
+
+	program
 		.command('polo')
 		.description('Fetches release information')
 		.action(async () => await programProvider.Execute());
 })();
-
-if (process.argv.length === 2) {
-	program.help();
-}
 
 export default program;

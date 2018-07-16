@@ -391,6 +391,110 @@ describe('ProgramProvider', () => {
 		});
 	});
 
+	describe('Import', () => {
+		it('should import using the passed config string', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
+
+			// Act
+			await program.Import('test string');
+
+			// Assert
+			settingsMock.verify((x) => x.Import(It.is((config: string) => config === 'test string')), Times.once());
+		});
+
+		it('should initialize settings if not previously initialized', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.IsFirstRun()).returns(() => true);
+
+			// Act
+			await program.Import('');
+
+			// Assert
+			settingsMock.verify((x) => x.Init(), Times.once());
+		});
+
+		it('should not initialize settings if previously initialized', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
+
+			// Act
+			await program.Import('');
+
+			// Assert
+			settingsMock.verify((x) => x.Init(), Times.never());
+		});
+	});
+
+	describe('Export', () => {
+		it('should get config from SettingsProvider', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
+			settingsMock.setup((x) => x.Export()).returns(async () => 'test string');
+
+			// Act
+			await program.Export();
+
+			// Assert
+			settingsMock.verify((x) => x.Export(), Times.once());
+			consoleMock.verify((x) => x.write(
+				It.is((message: string) => message === 'test string\n')
+			), Times.once());
+		});
+
+		it('should format the output if the "--pretty" flag is passed in', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
+			const obj = { name: 'test object' };
+			settingsMock.setup((x) => x.Export()).returns(async () => JSON.stringify(obj));
+
+			// Act
+			await program.Export(true);
+
+			// Assert
+			consoleMock.verify((x) => x.write(
+				It.is((message: string) => message === `${JSON.stringify(obj, undefined, 4)}\n`)
+			), Times.once());
+		});
+
+		it('should not format the output if the "--pretty" flag is not passed in', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
+			const obj = { name: 'test object' };
+			settingsMock.setup((x) => x.Export()).returns(async () => JSON.stringify(obj));
+
+			// Act
+			await program.Export(false);
+
+			// Assert
+			consoleMock.verify((x) => x.write(
+				It.is((message: string) => message === `${JSON.stringify(obj)}\n`)
+			), Times.once());
+		});
+
+		it('should initialize settings if not previously initialized', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.IsFirstRun()).returns(() => true);
+
+			// Act
+			await program.Export();
+
+			// Assert
+			settingsMock.verify((x) => x.Init(), Times.once());
+		});
+
+		it('should not initialize settings if previously initialized', async () => {
+			// Arrange
+			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
+
+			// Act
+			await program.Export();
+
+			// Assert
+			settingsMock.verify((x) => x.Init(), Times.never());
+		});
+	});
+
 	describe('Execute', () => {
 		it('should list repos with changes', async () => {
 			// Arrange

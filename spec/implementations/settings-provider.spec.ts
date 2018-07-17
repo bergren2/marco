@@ -589,6 +589,20 @@ describe('SettingsProvider', () => {
 			// Assert
 			expect(importPromise).to.eventually.be.rejected.and.notify(done);
 		});
+
+		it('should reject if there was an error parsing the input JSON', (done) => {
+			// Arrange
+			const fsMock = Mock.ofType<FsModule>();
+			const pathMock = Mock.ofType<PathModule>();
+
+			const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+			// Act
+			const importPromise = settingsProvider.Import('invalid json');
+
+			// Assert
+			expect(importPromise).to.eventually.be.rejected.and.notify(done);
+		});
 	});
 
 	describe('Export', () => {

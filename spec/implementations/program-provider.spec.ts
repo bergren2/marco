@@ -403,6 +403,26 @@ describe('ProgramProvider', () => {
 			settingsMock.verify((x) => x.Import(It.is((config: string) => config === 'test string')), Times.once());
 		});
 
+		[new Error('invalid json'), 'invalid json'].forEach((error: any) => {
+			it(`should write any errors that occur to the console (${error})`, async () => {
+				// Arrange
+				settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
+				settingsMock.setup((x) => x.Import(It.isAnyString()))
+					.returns(async () => {
+						throw error;
+					});
+				colors.disable();
+
+				// Act
+				await program.Import('');
+
+				// Assert
+				consoleMock.verify((x) => x.write(
+					It.is((message: string) => message === 'Error: invalid json\n')
+				), Times.once());
+			});
+		});
+
 		it('should initialize settings if not previously initialized', async () => {
 			// Arrange
 			settingsMock.setup((x) => x.IsFirstRun()).returns(() => true);

@@ -105,7 +105,16 @@ export class ProgramProvider implements IProgramProvider {
 			await this.Initialize();
 		}
 
-		await this.settings.Import(config);
+		try {
+			await this.settings.Import(config);
+			this.console.write('Import successful\n');
+		} catch (e) {
+			let errorMessage = e.toString();
+			if (e instanceof Error) {
+				errorMessage = e.message;
+			}
+			this.console.write(`${'Error'.red}: ${errorMessage}\n`);
+		}
 	}
 
 	public async Export(prettyPrint: boolean | undefined = false) {

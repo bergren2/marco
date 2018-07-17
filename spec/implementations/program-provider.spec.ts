@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { IMock, Mock, Times, It } from 'typemoq';
-import colors from 'colors';
+import chalk from 'chalk';
 import { ProgramProvider } from '../../src/implementations/program-provider';
 import { ReadlineModule } from '../../types/readline';
 import { FsModule } from '../../types/fs';
@@ -411,7 +411,7 @@ describe('ProgramProvider', () => {
 					.returns(async () => {
 						throw error;
 					});
-				colors.disable();
+				chalk.enabled = false;
 
 				// Act
 				await program.Import('');
@@ -542,7 +542,7 @@ describe('ProgramProvider', () => {
 			gitMock.setup((x) => x.HasChanges(It.isAnyString(), It.isAny()))
 				.returns(async (_path, repo) => repo.repo === 'repo1' || repo.repo === 'repo2');
 			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => []);
-			colors.disable();
+			chalk.enabled = false;
 
 			// Act
 			await program.Execute();
@@ -667,7 +667,7 @@ describe('ProgramProvider', () => {
 				});
 			gitMock.setup((x) => x.HasChanges(It.isAny(), It.isAny())).returns(async () => true);
 			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => []);
-			colors.disable();
+			chalk.enabled = false;
 
 			// Act
 			await program.Execute();

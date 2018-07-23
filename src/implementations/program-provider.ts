@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import 'colors';
+import chalk from 'chalk';
 import { ReadlineModule } from '../../types/readline';
 import { FsModule } from '../../types/fs';
 import { PathModule } from '../../types/path';
@@ -70,7 +70,7 @@ export class ProgramProvider implements IProgramProvider {
 		if (await this.settings.AddRepo(repo)) {
 			this.console.write(`Added repo '${this.StringifyRepoSetting(repo)}'\n`);
 		} else {
-			this.console.write(`${'Warning'.yellow}: repo '${this.StringifyRepoSetting(repo)}' already exists\n`);
+			this.console.write(chalk`{yellow Warning}: repo '${this.StringifyRepoSetting(repo)}' already exists\n`);
 		}
 	}
 
@@ -83,7 +83,7 @@ export class ProgramProvider implements IProgramProvider {
 		if (await this.settings.UpdateRepo(repoSetting)) {
 			this.console.write(`Updated repo '${this.StringifyRepoSetting(repoSetting)}' with base branch '${repoSetting.base}'\n`);
 		} else {
-			this.console.write(`${'Warning'.yellow}: repo '${this.StringifyRepoSetting(repoSetting)}' does not exist\n`);
+			this.console.write(chalk`{yellow Warning}: repo '${this.StringifyRepoSetting(repoSetting)}' does not exist\n`);
 		}
 	}
 
@@ -96,7 +96,7 @@ export class ProgramProvider implements IProgramProvider {
 		if (await this.settings.RemoveRepo(repoSetting)) {
 			this.console.write(`Removed repo '${this.StringifyRepoSetting(repoSetting)}'\n`);
 		} else {
-			this.console.write(`${'Warning'.yellow}: repo '${this.StringifyRepoSetting(repoSetting)}' does not exist\n`);
+			this.console.write(chalk`{yellow Warning}: repo '${this.StringifyRepoSetting(repoSetting)}' does not exist\n`);
 		}
 	}
 
@@ -113,7 +113,7 @@ export class ProgramProvider implements IProgramProvider {
 			if (e instanceof Error) {
 				errorMessage = e.message;
 			}
-			this.console.write(`${'Error'.red}: ${errorMessage}\n`);
+			this.console.write(chalk`{redBright Error}: ${errorMessage}\n`);
 		}
 	}
 
@@ -148,7 +148,7 @@ export class ProgramProvider implements IProgramProvider {
 			}
 		} catch (ex) {
 			this.WriteTempMessage('');
-			this.console.write(ex.toString().red);
+			this.console.write(chalk.redBright(ex.toString()));
 			releases.splice(0);
 		}
 
@@ -158,7 +158,7 @@ export class ProgramProvider implements IProgramProvider {
 	}
 
 	private StringifyRepoSetting(repoSetting: RepoSetting, includeBase: boolean = false): string {
-		return `${repoSetting.user}${'/'.gray}${repoSetting.repo}${includeBase ? ` [${repoSetting.base}]`.gray : ''}`;
+		return chalk`${repoSetting.user}{gray /}${repoSetting.repo}{gray ${includeBase ? ` [${repoSetting.base}]` : ''}}`;
 	}
 
 	private async Initialize(force: boolean = false): Promise<void> {

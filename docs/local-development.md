@@ -69,6 +69,7 @@ Debugging for the main program and unit tests can be accomplished with the follo
             "sourceMaps": true,
             "showAsyncStacks": true,
             "outputCapture": "std",
+            "console": "externalTerminal",
             "args": [
                 "list"
             ]

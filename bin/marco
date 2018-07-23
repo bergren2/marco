@@ -8,4 +8,25 @@ const path = require('path');
 const libPath = path.resolve(path.dirname(fs.realpathSync(__filename)), '../dist');
 const marco = require(`${libPath}/marco.js`);
 
-marco.parse(process.argv);
+if (process.argv.length === 2) {
+	marco.help();
+}
+
+const args = process.argv;
+if (process.stdin.isTTY) {
+	marco.parse(args);
+} else {
+	let stdin = '';
+
+	process.stdin.on('readable', function() {
+		let chunk = this.read();
+		if (chunk !== null) {
+			stdin += chunk;
+		}
+	});
+
+	process.stdin.on('end', function() {
+		args.push(stdin);
+		marco.parse(args);
+	});
+}

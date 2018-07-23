@@ -65,7 +65,7 @@ marco remove user/repo
 #### Import
 Imports configuration.
 
-Parameter is a JSON string containing the new configuration. Note that double-quotes must be properly escaped. **Warning**: Import _replaces_ the existing configuration.
+Parameter is a JSON string containing the new configuration. Note that double-quotes must be properly escaped when passed as a literal argument. The JSON string may also be piped into Marco (reads from stdin). **Warning**: Import _replaces_ the existing configuration.
 
 ```bash
 marco import "[{\"user\": \"user\", \"repo\": \"repo\", \"base\": \"base\"}]"

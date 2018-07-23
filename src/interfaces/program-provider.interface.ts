@@ -11,5 +11,9 @@ export interface IProgramProvider {
 
 	Remove(repoArg: string): Promise<void>;
 
+	Import(config: string): Promise<void>;
+
+	Export(prettyPrint: boolean | undefined): Promise<void>;
+
 	Execute(): Promise<void>;
 }

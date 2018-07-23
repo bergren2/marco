@@ -537,7 +537,7 @@ describe('SettingsProvider', () => {
 			await settingsProvider.Import(config);
 
 			// Assert
-			fileMock.verify((x) => x.write(It.is((str) => str === config), It.isAny()), Times.once());
+			fileMock.verify((x) => x.write(It.is((str) => str === JSON.stringify(JSON.parse(config))), It.isAny()), Times.once());
 		});
 
 		it('should call .close() on the file handler', async () => {
@@ -585,6 +585,20 @@ describe('SettingsProvider', () => {
 
 			// Act
 			const importPromise = settingsProvider.Import(config);
+
+			// Assert
+			expect(importPromise).to.eventually.be.rejected.and.notify(done);
+		});
+
+		it('should reject if there was an error parsing the input JSON', (done) => {
+			// Arrange
+			const fsMock = Mock.ofType<FsModule>();
+			const pathMock = Mock.ofType<PathModule>();
+
+			const settingsProvider = new SettingsProvider(fsMock.object, pathMock.object);
+
+			// Act
+			const importPromise = settingsProvider.Import('invalid json');
 
 			// Assert
 			expect(importPromise).to.eventually.be.rejected.and.notify(done);

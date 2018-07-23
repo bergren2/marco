@@ -75,6 +75,14 @@ export class SettingsProvider implements ISettingsProvider {
 
 	public async Import(config: string): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
+			// remove extra whitespace from input JSON
+			// also ensures the provided json is valid
+			try {
+				config = JSON.stringify(JSON.parse(config));
+			} catch {
+				throw new Error('Invalid config JSON');
+			}
+
 			const file = this.fs.createWriteStream(
 				this.path.resolve(this.Directory, SettingsProvider.repoConfigFilename),
 				'utf-8'

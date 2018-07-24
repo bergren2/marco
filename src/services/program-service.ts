@@ -4,31 +4,34 @@ import { ReadlineModule } from '../../types/readline';
 import { FsModule } from '../../types/fs';
 import { PathModule } from '../../types/path';
 import { RimrafModule } from '../../types/rimraf';
-import { TYPES } from '../symbols';
-import { IProgramProvider } from '../interfaces/program-provider.interface';
-import { ISettingsProvider } from '../interfaces/settings-provider.interface';
+import { SYMBOLS } from '../symbols';
+import { IProgramService } from '../interfaces/program-service.interface';
+import { IConfigDirectoryProvider } from '../interfaces/config-directory-provider.interface';
+import { IRepoService } from '../interfaces/repo-service.interface';
 import { IGitService } from '../interfaces/git-service.interface';
 
 @injectable()
-export class ProgramProvider implements IProgramProvider {
+export class ProgramService implements IProgramService {
 	private readonly package: any;
 	private readonly console: NodeJS.WriteStream;
 	private readonly readline: ReadlineModule;
 	private readonly fs: FsModule;
 	private readonly path: PathModule;
 	private readonly rimraf: RimrafModule;
-	private readonly settings: ISettingsProvider;
+	private readonly configDirectoryProvider: IConfigDirectoryProvider;
+	private readonly repoService: IRepoService;
 	private readonly git: IGitService;
 
 	constructor(
-		@inject(TYPES.PackageJson) packageJson: any,
-		@inject(TYPES.Console) console: NodeJS.WriteStream,
-		@inject(TYPES.ReadlineModule) readline: ReadlineModule,
-		@inject(TYPES.FsModule) fs: FsModule,
-		@inject(TYPES.PathModule) path: PathModule,
-		@inject(TYPES.RimrafModule) rimraf: RimrafModule,
-		@inject(TYPES.SettingsProvider) settings: ISettingsProvider,
-		@inject(TYPES.GitService) git: IGitService
+		@inject(SYMBOLS.PackageJson) packageJson: any,
+		@inject(SYMBOLS.Console) console: NodeJS.WriteStream,
+		@inject(SYMBOLS.ReadlineModule) readline: ReadlineModule,
+		@inject(SYMBOLS.FsModule) fs: FsModule,
+		@inject(SYMBOLS.PathModule) path: PathModule,
+		@inject(SYMBOLS.RimrafModule) rimraf: RimrafModule,
+		@inject(SYMBOLS.ConfigDirectoryProvider) configDirectoryProvider: IConfigDirectoryProvider,
+		@inject(SYMBOLS.RepoService) repoService: IRepoService,
+		@inject(SYMBOLS.GitService) git: IGitService
 	) {
 		this.package = packageJson;
 		this.console = console;
@@ -36,7 +39,8 @@ export class ProgramProvider implements IProgramProvider {
 		this.fs = fs;
 		this.path = path;
 		this.rimraf = rimraf;
-		this.settings = settings;
+		this.configDirectoryProvider = configDirectoryProvider;
+		this.repoService = repoService;
 		this.git = git;
 	}
 
@@ -44,16 +48,8 @@ export class ProgramProvider implements IProgramProvider {
 		return this.package.version;
 	}
 
-	public async Init(force?: boolean): Promise<void> {
-		return await this.Initialize(force);
-	}
-
 	public async List(): Promise<void> {
-		if (this.settings.IsFirstRun()) {
-			await this.Initialize();
-		}
-
-		const repos = this.settings.GetRepos();
+		const repos = await this.repoService.GetRepos();
 		if (repos.length > 0) {
 			repos.forEach((repoSetting) => {
 				this.console.write(`${this.StringifyRepoSetting(repoSetting, true)}\n`);
@@ -62,12 +58,8 @@ export class ProgramProvider implements IProgramProvider {
 	}
 
 	public async Add(repoArg: string, base?: string): Promise<void> {
-		if (this.settings.IsFirstRun()) {
-			await this.Initialize();
-		}
-
-		const repo = ProgramProvider.ParseRepoArg(repoArg, base);
-		if (await this.settings.AddRepo(repo)) {
+		const repo = ProgramService.ParseRepoArg(repoArg, base);
+		if (await this.repoService.AddRepo(repo)) {
 			this.console.write(`Added repo '${this.StringifyRepoSetting(repo)}'\n`);
 		} else {
 			this.console.write(chalk`{yellow Warning}: repo '${this.StringifyRepoSetting(repo)}' already exists\n`);
@@ -75,12 +67,8 @@ export class ProgramProvider implements IProgramProvider {
 	}
 
 	public async Update(repoArg: string, base: string): Promise<void> {
-		if (this.settings.IsFirstRun()) {
-			await this.Initialize();
-		}
-
-		const repoSetting = ProgramProvider.ParseRepoArg(repoArg, base);
-		if (await this.settings.UpdateRepo(repoSetting)) {
+		const repoSetting = ProgramService.ParseRepoArg(repoArg, base);
+		if (await this.repoService.UpdateRepo(repoSetting)) {
 			this.console.write(`Updated repo '${this.StringifyRepoSetting(repoSetting)}' with base branch '${repoSetting.base}'\n`);
 		} else {
 			this.console.write(chalk`{yellow Warning}: repo '${this.StringifyRepoSetting(repoSetting)}' does not exist\n`);
@@ -88,12 +76,8 @@ export class ProgramProvider implements IProgramProvider {
 	}
 
 	public async Remove(repoArg: string): Promise<void> {
-		if (this.settings.IsFirstRun()) {
-			await this.Initialize();
-		}
-
-		const repoSetting = ProgramProvider.ParseRepoArg(repoArg);
-		if (await this.settings.RemoveRepo(repoSetting)) {
+		const repoSetting = ProgramService.ParseRepoArg(repoArg);
+		if (await this.repoService.RemoveRepo(repoSetting)) {
 			this.console.write(`Removed repo '${this.StringifyRepoSetting(repoSetting)}'\n`);
 		} else {
 			this.console.write(chalk`{yellow Warning}: repo '${this.StringifyRepoSetting(repoSetting)}' does not exist\n`);
@@ -101,12 +85,9 @@ export class ProgramProvider implements IProgramProvider {
 	}
 
 	public async Import(config: string): Promise<void> {
-		if (this.settings.IsFirstRun()) {
-			await this.Initialize();
-		}
-
 		try {
-			await this.settings.Import(config);
+			const repos: RepoSetting[] = this.ParseRepoSettingsJson(config);
+			await this.repoService.SetRepos(repos);
 			this.console.write('Import successful\n');
 		} catch (e) {
 			let errorMessage = e.toString();
@@ -118,22 +99,14 @@ export class ProgramProvider implements IProgramProvider {
 	}
 
 	public async Export(prettyPrint: boolean | undefined = false) {
-		if (this.settings.IsFirstRun()) {
-			await this.Initialize();
-		}
-
-		const config = await this.settings.Export();
-		const output = prettyPrint ? JSON.stringify(JSON.parse(config), undefined, 4) : config;
+		const config = await this.repoService.GetRepos();
+		const output = JSON.stringify(config, undefined, prettyPrint ? 4 : 0);
 		this.console.write(`${output}\n`);
 	}
 
 	public async Execute(): Promise<void> {
-		if (this.settings.IsFirstRun()) {
-			await this.Initialize();
-		}
-
-		const tempFolderPath = this.fs.mkdtempSync(`${this.settings.Directory}/temp`);
-		const repos = this.settings.GetRepos();
+		const tempFolderPath = this.fs.mkdtempSync(this.path.resolve(this.configDirectoryProvider.Path, 'temp'));
+		const repos = await this.repoService.GetRepos();
 		const releases: RepoSetting[] = [];
 
 		try {
@@ -161,18 +134,15 @@ export class ProgramProvider implements IProgramProvider {
 		return chalk`${repoSetting.user}{gray /}${repoSetting.repo}{gray ${includeBase ? ` [${repoSetting.base}]` : ''}}`;
 	}
 
-	private async Initialize(force: boolean = false): Promise<void> {
-		if (force || this.settings.IsFirstRun()) {
-			if (force) {
-				this.console.write('Reinitializing settings...');
-			} else {
-				this.console.write('First run detected. Initializing settings...');
-			}
-			await this.settings.Init();
-			this.console.write('Done\n');
-		} else {
-			this.console.write('Settings already initialized\n');
+	private ParseRepoSettingsJson(json: string): RepoSetting[] {
+		const repos: RepoSetting[] = JSON.parse(json);
+		if (!Array.isArray(repos)) {
+			throw new Error('Parsed JSON is not an array');
+		} else if (repos.some((repo) => ['user', 'repo', 'base'].some((key) => !(repo as object).hasOwnProperty(key)))) {
+			throw new Error('Invalid RepoSetting object');
 		}
+
+		return repos;
 	}
 
 	private static ParseRepoArg(repoArg: string, base: string = 'master'): RepoSetting {
@@ -188,10 +158,10 @@ export class ProgramProvider implements IProgramProvider {
 	}
 
 	private CleanUpTempFolders(): void {
-		const files = this.fs.readdirSync(this.settings.Directory);
+		const files = this.fs.readdirSync(this.configDirectoryProvider.Path);
 		for (const file of files) {
 			if (/^temp.+/.test(file)) {
-				this.rimraf.sync(this.path.resolve(this.settings.Directory, file));
+				this.rimraf.sync(this.path.resolve(this.configDirectoryProvider.Path, file));
 			}
 		}
 	}

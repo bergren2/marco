@@ -4,35 +4,41 @@ import * as readline from 'readline';
 import { Container } from 'inversify';
 import SimpleGit from 'simple-git';
 import rimraf from 'rimraf';
-import { TYPES } from './symbols';
+import { SYMBOLS } from './symbols';
 import { FsModule } from '../types/fs';
 import { PathModule } from '../types/path';
 import { ReadlineModule } from '../types/readline';
 import { RimrafModule } from '../types/rimraf';
 import { IGitService } from './interfaces/git-service.interface';
-import { GitService } from './implementations/git-service';
+import { GitService } from './services/git-service';
 import { IGithubService } from './interfaces/github-service.interface';
-import { GithubService } from './implementations/github-service';
-import { ISettingsProvider } from './interfaces/settings-provider.interface';
-import { SettingsProvider } from './implementations/settings-provider';
-import { IProgramProvider } from './interfaces/program-provider.interface';
-import { ProgramProvider } from './implementations/program-provider';
+import { GithubService } from './services/github-service';
+import { IConfigDirectoryProvider } from './interfaces/config-directory-provider.interface';
+import { ConfigDirectoryProvider } from './providers/config-directory-provider';
+import { IConfigProvider } from './interfaces/config-provider.interface';
+import { ConfigProvider } from './providers/config-provider';
+import { IRepoService } from './interfaces/repo-service.interface';
+import { RepoService } from './services/repo-service';
+import { IProgramService } from './interfaces/program-service.interface';
+import { ProgramService } from './services/program-service';
 
 const container = new Container();
 
 // External Dependencies
-container.bind<object>(TYPES.PackageJson).toConstantValue(require('../package.json'));
-container.bind<FsModule>(TYPES.FsModule).toConstantValue(fs);
-container.bind<PathModule>(TYPES.PathModule).toConstantValue(path);
-container.bind<ReadlineModule>(TYPES.ReadlineModule).toConstantValue(readline);
-container.bind<NodeJS.WriteStream>(TYPES.Console).toConstantValue(process.stdout);
-container.bind<SimpleGitStatic>(TYPES.SimpleGit).toConstantValue(SimpleGit);
-container.bind<RimrafModule>(TYPES.RimrafModule).toConstantValue(rimraf);
+container.bind<object>(SYMBOLS.PackageJson).toConstantValue(require('../package.json'));
+container.bind<FsModule>(SYMBOLS.FsModule).toConstantValue(fs);
+container.bind<PathModule>(SYMBOLS.PathModule).toConstantValue(path);
+container.bind<ReadlineModule>(SYMBOLS.ReadlineModule).toConstantValue(readline);
+container.bind<NodeJS.WriteStream>(SYMBOLS.Console).toConstantValue(process.stdout);
+container.bind<SimpleGitStatic>(SYMBOLS.SimpleGit).toConstantValue(SimpleGit);
+container.bind<RimrafModule>(SYMBOLS.RimrafModule).toConstantValue(rimraf);
 
 // Internal Dependencies
-container.bind<IGitService>(TYPES.GitService).to(GitService);
-container.bind<IGithubService>(TYPES.GithubService).to(GithubService);
-container.bind<ISettingsProvider>(TYPES.SettingsProvider).to(SettingsProvider);
-container.bind<IProgramProvider>(TYPES.ProgramProvider).to(ProgramProvider);
+container.bind<IGitService>(SYMBOLS.GitService).to(GitService);
+container.bind<IGithubService>(SYMBOLS.GithubService).to(GithubService);
+container.bind<IConfigDirectoryProvider>(SYMBOLS.ConfigDirectoryProvider).to(ConfigDirectoryProvider);
+container.bind<IConfigProvider>(SYMBOLS.ConfigProvider).to(ConfigProvider);
+container.bind<IRepoService>(SYMBOLS.RepoService).to(RepoService);
+container.bind<IProgramService>(SYMBOLS.ProgramService).to(ProgramService);
 
 export { container };

@@ -1,21 +1,15 @@
 import 'reflect-metadata';
 import program from 'commander';
 import { container } from './container';
-import { IProgramProvider } from './interfaces/program-provider.interface';
-import { TYPES } from './symbols';
+import { IProgramService } from './interfaces/program-service.interface';
+import { SYMBOLS } from './symbols';
 
-const programProvider = container.get<IProgramProvider>(TYPES.ProgramProvider);
+const programProvider = container.get<IProgramService>(SYMBOLS.ProgramService);
 
 (function configure() {
 	program
 		.option('--no-color', 'Disable colorized output')
 		.version(programProvider.Version, '-v, --version');
-
-	program
-		.command('init')
-		.description('Initialize user settings')
-		.option('-f, --force', 'Force reinitialization')
-		.action(async (args: any) => await programProvider.Init(args.force));
 
 	program
 		.command('list')

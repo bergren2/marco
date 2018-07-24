@@ -2,7 +2,7 @@ import { injectable, inject } from '../../node_modules/inversify';
 import { IConfigProvider } from '../interfaces/config-provider.interface';
 import { Config } from '../models/config';
 import { ConfigLike } from '../../types/config-like';
-import { TYPES } from '../symbols';
+import { SYMBOLS } from '../symbols';
 import { FsModule } from '../../types/fs';
 import { PathModule } from '../../types/path';
 import { IConfigDirectoryProvider } from '../interfaces/config-directory-provider.interface';
@@ -18,9 +18,9 @@ export class ConfigProvider implements IConfigProvider {
 	private readonly configDirectoryProvider: IConfigDirectoryProvider;
 
 	constructor(
-		@inject(TYPES.FsModule) fs: FsModule,
-		@inject(TYPES.PathModule) path: PathModule,
-		@inject(TYPES.ConfigDirectoryProvider) configDirectoryProvider: IConfigDirectoryProvider
+		@inject(SYMBOLS.FsModule) fs: FsModule,
+		@inject(SYMBOLS.PathModule) path: PathModule,
+		@inject(SYMBOLS.ConfigDirectoryProvider) configDirectoryProvider: IConfigDirectoryProvider
 	) {
 		this.fs = fs;
 		this.path = path;
@@ -63,16 +63,38 @@ export class ConfigProvider implements IConfigProvider {
 	}
 
 	private async initDirectory(): Promise<void> {
-		return new Promise<void>((resolve) => {
-			this.fs.exists(this.configDirectoryProvider.Path, (exists) => {
-				if (exists) {
-					resolve();
+		return new Promise<void>(() => {
+			return new Promise<boolean>((resolve) => {
+				this.fs.exists(this.configDirectoryProvider.Path, resolve);
+			})
+			.then((directoryExists) => {
+				if (directoryExists) {
+					return Promise.resolve();
 				} else {
-					this.fs.mkdir(this.configDirectoryProvider.Path, (err) => {
-						if (err) {
-							throw err;
-						}
-						resolve();
+					return new Promise<void>((resolve) => {
+						this.fs.mkdir(this.configDirectoryProvider.Path, (err) => {
+							if (err) {
+								throw err;
+							}
+							resolve();
+						});
+					});
+				}
+			})
+			.then(() => {
+				return new Promise<boolean>((resolve) => {
+					this.fs.exists(this.path.resolve(this.configDirectoryProvider.Path, ConfigProvider.configFilename), resolve);
+				});
+			})
+			.then((fileExists) => {
+				if (!fileExists) {
+					const file = this.fs.createWriteStream(
+						this.path.resolve(this.configDirectoryProvider.Path, ConfigProvider.configFilename),
+						'utf-8'
+					);
+
+					file.write(JSON.stringify(new Config()), () => {
+						file.close();
 					});
 				}
 			});

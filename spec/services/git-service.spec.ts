@@ -2,7 +2,7 @@ import '../support/setup';
 import { expect } from 'chai';
 import { Mock, It, Times } from 'typemoq';
 import { IGithubService } from '../../src/interfaces/github-service.interface';
-import { GitService } from '../../src/implementations/git-service';
+import { GitService } from '../../src/services/git-service';
 
 describe('GitService', () => {
 	describe('CloneRepo', () => {

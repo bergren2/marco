@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { GithubService } from '../../src/implementations/github-service';
+import { GithubService } from '../../src/services/github-service';
 
 describe('GithubService', () => {
 	describe('GetRepoUrl', () => {

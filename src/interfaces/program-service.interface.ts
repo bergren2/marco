@@ -1,7 +1,5 @@
-export interface IProgramProvider {
+export interface IProgramService {
 	Version: string;
-
-	Init(force?: boolean): Promise<void>;
 
 	List(): Promise<void>;
 

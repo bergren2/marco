@@ -18,15 +18,6 @@ marco polo
 ```
 
 ### Commands
-#### Init
-Initializes the settings directory for marco.
-
-Takes an optional flag `-f, --force` that forces a reinitialization (**Warning**: this will delete any existing configuration).
-```bash
-marco init
-marco init --force
-```
-
 #### List
 Lists all repos in the configuration.
 

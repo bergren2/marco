@@ -1,4 +1,4 @@
-export const TYPES = {
+export const SYMBOLS = {
 	PackageJson: Symbol.for('package.json'),
 	FsModule: Symbol.for('fs'),
 	PathModule: Symbol.for('path'),
@@ -8,6 +8,8 @@ export const TYPES = {
 	RimrafModule: Symbol.for('rimraf'),
 	GitService: Symbol.for('GitService'),
 	GithubService: Symbol.for('GithubService'),
-	SettingsProvider: Symbol.for('SettingsProvider'),
-	ProgramProvider: Symbol.for('Program')
+	ConfigDirectoryProvider: Symbol.for('ConfigDirectoryProvider'),
+	ConfigProvider: Symbol.for('ConfigProvider'),
+	RepoService: Symbol.for('RepoService'),
+	ProgramService: Symbol.for('ProgramService')
 };

@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { IGitService } from '../interfaces/git-service.interface';
-import { TYPES } from '../symbols';
+import { SYMBOLS } from '../symbols';
 import { IGithubService } from '../interfaces/github-service.interface';
 
 @injectable()
@@ -9,8 +9,8 @@ export class GitService implements IGitService {
 	private readonly githubService: IGithubService;
 
 	constructor(
-		@inject(TYPES.SimpleGit) git: SimpleGitStatic,
-		@inject(TYPES.GithubService) githubService: IGithubService
+		@inject(SYMBOLS.SimpleGit) git: SimpleGitStatic,
+		@inject(SYMBOLS.GithubService) githubService: IGithubService
 	) {
 		this.git = git;
 		this.githubService = githubService;

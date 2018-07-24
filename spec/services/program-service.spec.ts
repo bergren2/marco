@@ -1,24 +1,26 @@
 import { expect } from 'chai';
 import { IMock, Mock, Times, It } from 'typemoq';
 import chalk from 'chalk';
-import { ProgramProvider } from '../../src/implementations/program-provider';
+import { ProgramService } from '../../src/services/program-service';
 import { ReadlineModule } from '../../types/readline';
 import { FsModule } from '../../types/fs';
 import { PathModule } from '../../types/path';
 import { RimrafModule } from '../../types/rimraf';
-import { ISettingsProvider } from '../../src/interfaces/settings-provider.interface';
+import { IConfigDirectoryProvider } from '../../src/interfaces/config-directory-provider.interface';
+import { IRepoService } from '../../src/interfaces/repo-service.interface';
 import { IGitService } from '../../src/interfaces/git-service.interface';
 
-describe('ProgramProvider', () => {
+describe('ProgramService', () => {
 	let packageMock: IMock<any>;
 	let consoleMock: IMock<NodeJS.WriteStream>;
 	let readlineMock: IMock<ReadlineModule>;
 	let fsMock: IMock<FsModule>;
 	let pathMock: IMock<PathModule>;
 	let rimrafMock: IMock<RimrafModule>;
-	let settingsMock: IMock<ISettingsProvider>;
+	let configDirectoryProviderMock: IMock<IConfigDirectoryProvider>;
+	let repoServiceMock: IMock<IRepoService>;
 	let gitMock: IMock<IGitService>;
-	let program: ProgramProvider;
+	let program: ProgramService;
 
 	beforeEach(() => {
 		packageMock = Mock.ofType<any>();
@@ -27,17 +29,19 @@ describe('ProgramProvider', () => {
 		fsMock = Mock.ofType<FsModule>();
 		pathMock = Mock.ofType<PathModule>();
 		rimrafMock = Mock.ofType<RimrafModule>();
-		settingsMock = Mock.ofType<ISettingsProvider>();
+		configDirectoryProviderMock = Mock.ofType<IConfigDirectoryProvider>();
+		repoServiceMock = Mock.ofType<IRepoService>();
 		gitMock = Mock.ofType<IGitService>();
 
-		program = new ProgramProvider(
+		program = new ProgramService(
 			packageMock.object,
 			consoleMock.object,
 			readlineMock.object,
 			fsMock.object,
 			pathMock.object,
 			rimrafMock.object,
-			settingsMock.object,
+			configDirectoryProviderMock.object,
+			repoServiceMock.object,
 			gitMock.object
 		);
 	});
@@ -52,41 +56,6 @@ describe('ProgramProvider', () => {
 
 			// Assert
 			expect(version).to.be.a('string').that.equals('1.2.3');
-		});
-	});
-
-	describe('Init', () => {
-		it('should perform initial setup on first run', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => true);
-
-			// Act
-			await program.Init();
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.once());
-		});
-
-		it('should not perform initial setup on subsequent runs', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-
-			// Act
-			await program.Init();
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.never());
-		});
-
-		it('should perform initial setup if "force" parameter is truthy', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-
-			// Act
-			await program.Init(true);
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.once());
 		});
 	});
 
@@ -111,8 +80,7 @@ describe('ProgramProvider', () => {
 
 		it('should list all repositories', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.GetRepos()).returns(() => repos);
+			repoServiceMock.setup((x) => x.GetRepos()).returns(async () => repos);
 
 			// Act
 			await program.List();
@@ -123,8 +91,7 @@ describe('ProgramProvider', () => {
 
 		it('should not write to console if there are no repositories', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.GetRepos()).returns(() => []);
+			repoServiceMock.setup((x) => x.GetRepos()).returns(async () => []);
 
 			// Act
 			await program.List();
@@ -132,37 +99,12 @@ describe('ProgramProvider', () => {
 			// Assert
 			consoleMock.verify((x) => x.write(It.isAnyString()), Times.never());
 		});
-
-		it('should initialize settings if not previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => true);
-			settingsMock.setup((x) => x.GetRepos()).returns(() => repos);
-
-			// Act
-			await program.List();
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.once());
-		});
-
-		it('should not initialize settings if previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.GetRepos()).returns(() => repos);
-
-			// Act
-			await program.List();
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.never());
-		});
 	});
 
 	describe('Add', () => {
-		it('should add the repo to the configuration file', async () => {
+		it('should add the repo', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.AddRepo(It.isAny())).returns(async () => true);
+			repoServiceMock.setup((x) => x.AddRepo(It.isAny())).returns(async () => true);
 			const newRepo: RepoSetting = {
 				user: 'newUser',
 				repo: 'newRepo',
@@ -173,7 +115,7 @@ describe('ProgramProvider', () => {
 			await program.Add(`${newRepo.user}/${newRepo.repo}`, newRepo.base);
 
 			// Assert
-			settingsMock.verify((x) => {
+			repoServiceMock.verify((x) => {
 				return x.AddRepo(It.is((repo: RepoSetting) => {
 					return repo.user === newRepo.user &&
 						repo.repo === newRepo.repo &&
@@ -184,8 +126,7 @@ describe('ProgramProvider', () => {
 
 		it('should write success message if repo was successfully added', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.AddRepo(It.isAny())).returns(async () => true);
+			repoServiceMock.setup((x) => x.AddRepo(It.isAny())).returns(async () => true);
 
 			// Act
 			await program.Add('user/repo', 'base');
@@ -198,8 +139,7 @@ describe('ProgramProvider', () => {
 
 		it('should write failure message if repo was not successfully added', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.AddRepo(It.isAny())).returns(async () => false);
+			repoServiceMock.setup((x) => x.AddRepo(It.isAny())).returns(async () => false);
 
 			// Act
 			await program.Add('user/repo', 'base');
@@ -212,35 +152,12 @@ describe('ProgramProvider', () => {
 				It.is((message: string) => message.includes('Warning'))
 			), Times.once());
 		});
-
-		it('should initialize settings if not previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => true);
-
-			// Act
-			await program.Add('user/repo', 'base');
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.once());
-		});
-
-		it('should not initialize settings if previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-
-			// Act
-			await program.Add('user/repo', 'base');
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.never());
-		});
 	});
 
 	describe('Update', () => {
-		it('should update the repo in the configuration file', async () => {
+		it('should update the repo', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.UpdateRepo(It.isAny())).returns(async () => true);
+			repoServiceMock.setup((x) => x.UpdateRepo(It.isAny())).returns(async () => true);
 			const newRepo: RepoSetting = {
 				user: 'newUser',
 				repo: 'newRepo',
@@ -251,7 +168,7 @@ describe('ProgramProvider', () => {
 			await program.Update(`${newRepo.user}/${newRepo.repo}`, newRepo.base);
 
 			// Assert
-			settingsMock.verify((x) => {
+			repoServiceMock.verify((x) => {
 				return x.UpdateRepo(It.is((repo: RepoSetting) => {
 					return repo.user === newRepo.user &&
 						repo.repo === newRepo.repo &&
@@ -262,8 +179,7 @@ describe('ProgramProvider', () => {
 
 		it('should write success message if repo was successfully updated', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.UpdateRepo(It.isAny())).returns(async () => true);
+			repoServiceMock.setup((x) => x.UpdateRepo(It.isAny())).returns(async () => true);
 
 			// Act
 			await program.Update('user/repo', 'base');
@@ -276,8 +192,7 @@ describe('ProgramProvider', () => {
 
 		it('should write failure message if repo was not successfully updated', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.UpdateRepo(It.isAny())).returns(async () => false);
+			repoServiceMock.setup((x) => x.UpdateRepo(It.isAny())).returns(async () => false);
 
 			// Act
 			await program.Update('user/repo', 'base');
@@ -290,35 +205,12 @@ describe('ProgramProvider', () => {
 				It.is((message: string) => message.includes('Warning'))
 			), Times.once());
 		});
-
-		it('should initialize settings if not previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => true);
-
-			// Act
-			await program.Update('user/repo', 'base');
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.once());
-		});
-
-		it('should not initialize settings if previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-
-			// Act
-			await program.Update('user/repo', 'base');
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.never());
-		});
 	});
 
 	describe('Remove', () => {
-		it('should remove the repo from the configuration file', async () => {
+		it('should remove the repo', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.RemoveRepo(It.isAny())).returns(async () => true);
+			repoServiceMock.setup((x) => x.RemoveRepo(It.isAny())).returns(async () => true);
 			const newRepo: RepoSetting = {
 				user: 'newUser',
 				repo: 'newRepo',
@@ -329,7 +221,7 @@ describe('ProgramProvider', () => {
 			await program.Remove(`${newRepo.user}/${newRepo.repo}`);
 
 			// Assert
-			settingsMock.verify((x) => {
+			repoServiceMock.verify((x) => {
 				return x.RemoveRepo(It.is((repo: RepoSetting) => {
 					return repo.user === newRepo.user &&
 						repo.repo === newRepo.repo;
@@ -339,8 +231,7 @@ describe('ProgramProvider', () => {
 
 		it('should write success message if repo was successfully removed', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.RemoveRepo(It.isAny())).returns(async () => true);
+			repoServiceMock.setup((x) => x.RemoveRepo(It.isAny())).returns(async () => true);
 
 			// Act
 			await program.Remove('user/repo');
@@ -353,8 +244,7 @@ describe('ProgramProvider', () => {
 
 		it('should write failure message if repo was not successfully removed', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.RemoveRepo(It.isAny())).returns(async () => false);
+			repoServiceMock.setup((x) => x.RemoveRepo(It.isAny())).returns(async () => false);
 
 			// Act
 			await program.Remove('user/repo');
@@ -367,160 +257,76 @@ describe('ProgramProvider', () => {
 				It.is((message: string) => message.includes('Warning'))
 			), Times.once());
 		});
-
-		it('should initialize settings if not previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => true);
-
-			// Act
-			await program.Remove('user/repo');
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.once());
-		});
-
-		it('should not initialize settings if previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-
-			// Act
-			await program.Remove('user/repo');
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.never());
-		});
 	});
 
 	describe('Import', () => {
 		it('should import using the passed config string', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-
 			// Act
-			await program.Import('test string');
+			await program.Import('[]');
 
 			// Assert
-			settingsMock.verify((x) => x.Import(It.is((config: string) => config === 'test string')), Times.once());
+			repoServiceMock.verify((x) => x.SetRepos(
+				It.is((config: RepoSetting[]) => Array.isArray(config) && config.length === 0)
+			), Times.once());
 		});
 
-		[new Error('invalid json'), 'invalid json'].forEach((error: any) => {
-			it(`should write any errors that occur to the console (${error})`, async () => {
-				// Arrange
-				settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-				settingsMock.setup((x) => x.Import(It.isAnyString()))
-					.returns(async () => {
-						throw error;
-					});
-				chalk.enabled = false;
-
-				// Act
-				await program.Import('');
-
-				// Assert
-				consoleMock.verify((x) => x.write(
-					It.is((message: string) => message === 'Error: invalid json\n')
-				), Times.once());
-			});
-		});
-
-		it('should initialize settings if not previously initialized', async () => {
+		it('should write any errors that occur to the console', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => true);
+			chalk.enabled = false;
 
 			// Act
 			await program.Import('');
 
 			// Assert
-			settingsMock.verify((x) => x.Init(), Times.once());
-		});
-
-		it('should not initialize settings if previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-
-			// Act
-			await program.Import('');
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.never());
+			consoleMock.verify((x) => x.write(
+				It.is((message: string) => message.startsWith('Error:'))
+			), Times.once());
 		});
 	});
 
 	describe('Export', () => {
-		it('should get config from SettingsProvider', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.Export()).returns(async () => 'test string');
-
-			// Act
-			await program.Export();
-
-			// Assert
-			settingsMock.verify((x) => x.Export(), Times.once());
-			consoleMock.verify((x) => x.write(
-				It.is((message: string) => message === 'test string\n')
-			), Times.once());
-		});
-
 		it('should format the output if the "--pretty" flag is passed in', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			const obj = { name: 'test object' };
-			settingsMock.setup((x) => x.Export()).returns(async () => JSON.stringify(obj));
+			const repo: RepoSetting = {
+				user: 'user',
+				repo: 'repo',
+				base: 'base'
+			};
+			repoServiceMock.setup((x) => x.GetRepos()).returns(async () => [repo]);
 
 			// Act
 			await program.Export(true);
 
 			// Assert
 			consoleMock.verify((x) => x.write(
-				It.is((message: string) => message === `${JSON.stringify(obj, undefined, 4)}\n`)
+				It.is((message: string) => message === `${JSON.stringify([repo], undefined, 4)}\n`)
 			), Times.once());
 		});
 
 		it('should not format the output if the "--pretty" flag is not passed in', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			const obj = { name: 'test object' };
-			settingsMock.setup((x) => x.Export()).returns(async () => JSON.stringify(obj));
+			const repo: RepoSetting = {
+				user: 'user',
+				repo: 'repo',
+				base: 'base'
+			};
+			repoServiceMock.setup((x) => x.GetRepos()).returns(async () => [repo]);
 
 			// Act
-			await program.Export(false);
+			await program.Export();
 
 			// Assert
 			consoleMock.verify((x) => x.write(
-				It.is((message: string) => message === `${JSON.stringify(obj)}\n`)
+				It.is((message: string) => message === `${JSON.stringify([repo])}\n`)
 			), Times.once());
-		});
-
-		it('should initialize settings if not previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => true);
-
-			// Act
-			await program.Export();
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.once());
-		});
-
-		it('should not initialize settings if previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-
-			// Act
-			await program.Export();
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.never());
 		});
 	});
 
 	describe('Execute', () => {
 		it('should list repos with changes', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			fsMock.setup((x) => x.mkdtempSync(It.isAnyString())).returns(() => '/temp');
-			settingsMock.setup((x) => x.GetRepos()).returns(() => [
+			fsMock.setup((x) => x.mkdtempSync(It.isAny())).returns(() => '/temp');
+			repoServiceMock.setup((x) => x.GetRepos()).returns(async () => [
 				{
 					user: 'user1',
 					repo: 'repo1',
@@ -553,35 +359,9 @@ describe('ProgramProvider', () => {
 			), Times.exactly(2));
 		});
 
-		it('should initialize settings if not previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => true);
-			settingsMock.setup((x) => x.GetRepos()).returns(() => []);
-			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => []);
-
-			// Act
-			await program.Execute();
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.once());
-		});
-
-		it('should not initialize settings if previously initialized', async () => {
-			// Arrange
-			settingsMock.setup((x) => x.IsFirstRun()).returns(() => false);
-			settingsMock.setup((x) => x.GetRepos()).returns(() => []);
-			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => []);
-
-			// Act
-			await program.Execute();
-
-			// Assert
-			settingsMock.verify((x) => x.Init(), Times.never());
-		});
-
 		it('should clean up temp folder when complete', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.GetRepos()).returns(() => []);
+			repoServiceMock.setup((x) => x.GetRepos()).returns(async () => []);
 			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => [
 				'temp1',
 				'temp2'
@@ -600,7 +380,7 @@ describe('ProgramProvider', () => {
 
 		it('should not clean up non-temp folders when complete', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.GetRepos()).returns(() => []);
+			repoServiceMock.setup((x) => x.GetRepos()).returns(async () => []);
 			fsMock.setup((x) => x.readdirSync(It.isAny())).returns(() => [
 				'temp1',
 				'temp2',
@@ -623,7 +403,7 @@ describe('ProgramProvider', () => {
 
 		it('should write error message when there was a problem checking a repo', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.GetRepos()).returns(() => [
+			repoServiceMock.setup((x) => x.GetRepos()).returns(async () => [
 				{
 					user: 'user',
 					repo: 'repo',
@@ -647,7 +427,7 @@ describe('ProgramProvider', () => {
 
 		it('should clear matched repos if an error is encountered', async () => {
 			// Arrange
-			settingsMock.setup((x) => x.GetRepos()).returns(() => [
+			repoServiceMock.setup((x) => x.GetRepos()).returns(async () => [
 				{
 					user: 'user1',
 					repo: 'repo1',
@@ -676,6 +456,34 @@ describe('ProgramProvider', () => {
 			consoleMock.verify((x) => x.write(
 				It.is((message: string) => message === 'user1/repo1\n' || message === 'user2/repo2\n')
 			), Times.never());
+		});
+	});
+
+	describe('ParseRepoSettingsJson', () => {
+		it('should throw an error if parsed JSON is not an array', async () => {
+			// Arrange
+			chalk.enabled = false;
+
+			// Act
+			await program.Import('{}');
+
+			// Assert
+			consoleMock.verify((x) => x.write(
+				It.is((message) => message === 'Error: Parsed JSON is not an array\n')
+			), Times.once());
+		});
+
+		it('should throw an error if parsed JSON contains an invalid RepoSetting', async () => {
+			// Arrange
+			chalk.enabled = false;
+
+			// Act
+			await program.Import('[{"user": "user", "repo": "repo"}]');
+
+			// Assert
+			consoleMock.verify((x) => x.write(
+				It.is((message) => message === 'Error: Invalid RepoSetting object\n')
+			), Times.once());
 		});
 	});
 });

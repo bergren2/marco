@@ -8,6 +8,8 @@ export const TYPES = {
 	RimrafModule: Symbol.for('rimraf'),
 	GitService: Symbol.for('GitService'),
 	GithubService: Symbol.for('GithubService'),
+	ConfigDirectoryProvider: Symbol.for('ConfigDirectoryProvider'),
+	ConfigProvider: Symbol.for('ConfigProvider'),
 	SettingsProvider: Symbol.for('SettingsProvider'),
 	ProgramProvider: Symbol.for('Program')
 };

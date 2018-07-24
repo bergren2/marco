@@ -1,26 +1,14 @@
 import { injectable, inject } from 'inversify';
 import { ISettingsProvider } from '../interfaces/settings-provider.interface';
+import { IConfigProvider } from '../interfaces/config-provider.interface';
 import { TYPES } from '../symbols';
-import { FsModule } from '../../types/fs';
-import { PathModule } from '../../types/path';
 
 @injectable()
 export class SettingsProvider implements ISettingsProvider {
-	private readonly directory: string;
-	public get Directory(): string {
-		return this.directory;
-	}
+	private readonly configProvider: IConfigProvider;
 
-	private static readonly repoConfigFilename: string = 'repos.json';
-
-	private readonly fs: FsModule;
-	private readonly path: PathModule;
-
-	constructor(@inject(TYPES.FsModule) fs: FsModule, @inject(TYPES.PathModule) path: PathModule) {
-		this.fs = fs;
-		this.path = path;
-
-		this.directory = this.path.resolve(SettingsProvider.GetUserHomeDirectory(), '.marco');
+	constructor(@inject(TYPES.ConfigProvider) configProvider: IConfigProvider) {
+		this.configProvider = configProvider;
 	}
 
 	public IsFirstRun(): boolean {

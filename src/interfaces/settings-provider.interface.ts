@@ -1,6 +1,4 @@
 export interface ISettingsProvider {
-	readonly Directory: string;
-
 	IsFirstRun(): boolean;
 
 	Init(): Promise<void>;

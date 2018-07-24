@@ -63,41 +63,39 @@ export class ConfigProvider implements IConfigProvider {
 	}
 
 	private async initDirectory(): Promise<void> {
-		return new Promise<void>(() => {
-			return new Promise<boolean>((resolve) => {
-				this.fs.exists(this.configDirectoryProvider.Path, resolve);
-			})
-			.then((directoryExists) => {
-				if (directoryExists) {
-					return Promise.resolve();
-				} else {
-					return new Promise<void>((resolve) => {
-						this.fs.mkdir(this.configDirectoryProvider.Path, (err) => {
-							if (err) {
-								throw err;
-							}
-							resolve();
-						});
+		return new Promise<boolean>((resolve) => {
+			this.fs.exists(this.configDirectoryProvider.Path, resolve);
+		})
+		.then((directoryExists) => {
+			if (directoryExists) {
+				return Promise.resolve();
+			} else {
+				return new Promise<void>((resolve) => {
+					this.fs.mkdir(this.configDirectoryProvider.Path, (err) => {
+						if (err) {
+							throw err;
+						}
+						resolve();
 					});
-				}
-			})
-			.then(() => {
-				return new Promise<boolean>((resolve) => {
-					this.fs.exists(this.path.resolve(this.configDirectoryProvider.Path, ConfigProvider.configFilename), resolve);
 				});
-			})
-			.then((fileExists) => {
-				if (!fileExists) {
-					const file = this.fs.createWriteStream(
-						this.path.resolve(this.configDirectoryProvider.Path, ConfigProvider.configFilename),
-						'utf-8'
-					);
-
-					file.write(JSON.stringify(new Config()), () => {
-						file.close();
-					});
-				}
+			}
+		})
+		.then(() => {
+			return new Promise<boolean>((resolve) => {
+				this.fs.exists(this.path.resolve(this.configDirectoryProvider.Path, ConfigProvider.configFilename), resolve);
 			});
+		})
+		.then((fileExists) => {
+			if (!fileExists) {
+				const file = this.fs.createWriteStream(
+					this.path.resolve(this.configDirectoryProvider.Path, ConfigProvider.configFilename),
+					'utf-8'
+				);
+
+				file.write(JSON.stringify(new Config()), () => {
+					file.close();
+				});
+			}
 		});
 	}
 }

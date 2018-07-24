@@ -6,7 +6,7 @@ import { Config } from '../../src/models/config';
 
 describe('RepoService', () => {
 	describe('GetRepos', () => {
-		it('should return the repo config as an object', () => {
+		it('should return the repo config as an object', async () => {
 			// Arrange
 			const configProviderMock = Mock.ofType<IConfigProvider>();
 			const repos = [{ user: 'user', repo: 'repo', base: 'base' }];
@@ -16,10 +16,10 @@ describe('RepoService', () => {
 				return config;
 			});
 
-			const settingsProvider = new RepoService(configProviderMock.object);
+			const repoService = new RepoService(configProviderMock.object);
 
 			// Act
-			const loadedRepos = settingsProvider.GetRepos();
+			const loadedRepos = await repoService.GetRepos();
 
 			// Assert
 			expect(loadedRepos).to.deep.equal(repos);
@@ -31,11 +31,16 @@ describe('RepoService', () => {
 			// Arrange
 			const configProviderMock = Mock.ofType<IConfigProvider>();
 			const repo: RepoSetting = { user: 'user', repo: 'repo', base: 'base' };
+			configProviderMock.setup((x) => x.Get()).returns(async () => {
+				const config = new Config();
+				config.repos = [];
+				return config;
+			});
 			configProviderMock.setup((x) => x.Set(It.isAny())).returns(() => Promise.resolve());
-			const settingsProvider = new RepoService(configProviderMock.object);
+			const repoService = new RepoService(configProviderMock.object);
 
 			// Act
-			const result = await settingsProvider.AddRepo(repo);
+			const result = await repoService.AddRepo(repo);
 
 			// Assert
 			configProviderMock.verify((x) => x.Set(
@@ -63,10 +68,10 @@ describe('RepoService', () => {
 				return config;
 			});
 
-			const settingsProvider = new RepoService(configProviderMock.object);
+			const repoService = new RepoService(configProviderMock.object);
 
 			// Act
-			const result = await settingsProvider.AddRepo(repo);
+			const result = await repoService.AddRepo(repo);
 
 			// Assert
 			configProviderMock.verify((x) => x.Set(It.isAny()), Times.never());
@@ -92,10 +97,10 @@ describe('RepoService', () => {
 				return config;
 			});
 
-			const settingsProvider = new RepoService(configProviderMock.object);
+			const repoService = new RepoService(configProviderMock.object);
 
 			// Act
-			await settingsProvider.AddRepo(repo);
+			await repoService.AddRepo(repo);
 
 			// Assert
 			configProviderMock.verify((x) => x.Set(
@@ -124,10 +129,10 @@ describe('RepoService', () => {
 				return config;
 			});
 
-			const settingsProvider = new RepoService(configProviderMock.object);
+			const repoService = new RepoService(configProviderMock.object);
 
 			// Act
-			const result = await settingsProvider.UpdateRepo(updatedRepo);
+			const result = await repoService.UpdateRepo(updatedRepo);
 
 			// Assert
 			configProviderMock.verify((x) => x.Set(
@@ -154,10 +159,10 @@ describe('RepoService', () => {
 				return config;
 			});
 
-			const settingsProvider = new RepoService(configProviderMock.object);
+			const repoService = new RepoService(configProviderMock.object);
 
 			// Act
-			const result = await settingsProvider.UpdateRepo(updatedRepo);
+			const result = await repoService.UpdateRepo(updatedRepo);
 
 			// Assert
 			configProviderMock.verify((x) => x.Set(It.isAny()), Times.never());
@@ -180,10 +185,10 @@ describe('RepoService', () => {
 				return config;
 			});
 
-			const settingsProvider = new RepoService(configProviderMock.object);
+			const repoService = new RepoService(configProviderMock.object);
 
 			// Act
-			const result = await settingsProvider.RemoveRepo(repo);
+			const result = await repoService.RemoveRepo(repo);
 
 			// Assert
 			configProviderMock.verify((x) => x.Set(
@@ -210,14 +215,43 @@ describe('RepoService', () => {
 				return config;
 			});
 
-			const settingsProvider = new RepoService(configProviderMock.object);
+			const repoService = new RepoService(configProviderMock.object);
 
 			// Act
-			const result = await settingsProvider.RemoveRepo(repo);
+			const result = await repoService.RemoveRepo(repo);
 
 			// Assert
 			configProviderMock.verify((x) => x.Set(It.isAny()), Times.never());
 			expect(result).to.be.false;
+		});
+	});
+
+	describe('SetRepos', () => {
+		it('should set repos with passed array', async () => {
+			// Arrange
+			const configProviderMock = Mock.ofType<IConfigProvider>();
+			const repoService = new RepoService(configProviderMock.object);
+
+			const repo: RepoSetting = {
+				user: 'user',
+				repo: 'repo',
+				base: 'base'
+			};
+
+			// Act
+			await repoService.SetRepos([repo]);
+
+			// Assert
+			configProviderMock.verify((x) => x.Set(
+				It.is((config) => {
+					return config.repos !== undefined &&
+						Array.isArray(config.repos) &&
+						config.repos.length === 1 &&
+						config.repos[0].user === 'user' &&
+						config.repos[0].repo === 'repo' &&
+						config.repos[0].base === 'base';
+				})
+			), Times.once());
 		});
 	});
 });

@@ -10,7 +10,7 @@ import { IConfigDirectoryProvider } from '../../src/interfaces/config-directory-
 import { IRepoService } from '../../src/interfaces/repo-service.interface';
 import { IGitService } from '../../src/interfaces/git-service.interface';
 
-describe('ProgramProvider', () => {
+describe('ProgramService', () => {
 	let packageMock: IMock<any>;
 	let consoleMock: IMock<NodeJS.WriteStream>;
 	let readlineMock: IMock<ReadlineModule>;
@@ -265,7 +265,9 @@ describe('ProgramProvider', () => {
 			await program.Import('[]');
 
 			// Assert
-			repoServiceMock.verify((x) => x.SetRepos(It.is((config: RepoSetting[]) => config === [])), Times.once());
+			repoServiceMock.verify((x) => x.SetRepos(
+				It.is((config: RepoSetting[]) => Array.isArray(config) && config.length === 0)
+			), Times.once());
 		});
 
 		it('should write any errors that occur to the console', async () => {
@@ -277,7 +279,7 @@ describe('ProgramProvider', () => {
 
 			// Assert
 			consoleMock.verify((x) => x.write(
-				It.is((message: string) => message === 'Error: invalid json\n')
+				It.is((message: string) => message.startsWith('Error:'))
 			), Times.once());
 		});
 	});
@@ -311,7 +313,7 @@ describe('ProgramProvider', () => {
 			repoServiceMock.setup((x) => x.GetRepos()).returns(async () => [repo]);
 
 			// Act
-			await program.Export(false);
+			await program.Export();
 
 			// Assert
 			consoleMock.verify((x) => x.write(
@@ -323,7 +325,7 @@ describe('ProgramProvider', () => {
 	describe('Execute', () => {
 		it('should list repos with changes', async () => {
 			// Arrange
-			fsMock.setup((x) => x.mkdtempSync(It.isAnyString())).returns(() => '/temp');
+			fsMock.setup((x) => x.mkdtempSync(It.isAny())).returns(() => '/temp');
 			repoServiceMock.setup((x) => x.GetRepos()).returns(async () => [
 				{
 					user: 'user1',
@@ -454,6 +456,34 @@ describe('ProgramProvider', () => {
 			consoleMock.verify((x) => x.write(
 				It.is((message: string) => message === 'user1/repo1\n' || message === 'user2/repo2\n')
 			), Times.never());
+		});
+	});
+
+	describe('ParseRepoSettingsJson', () => {
+		it('should throw an error if parsed JSON is not an array', async () => {
+			// Arrange
+			chalk.enabled = false;
+
+			// Act
+			await program.Import('{}');
+
+			// Assert
+			consoleMock.verify((x) => x.write(
+				It.is((message) => message === 'Error: Parsed JSON is not an array\n')
+			), Times.once());
+		});
+
+		it('should throw an error if parsed JSON contains an invalid RepoSetting', async () => {
+			// Arrange
+			chalk.enabled = false;
+
+			// Act
+			await program.Import('[{"user": "user", "repo": "repo"}]');
+
+			// Assert
+			consoleMock.verify((x) => x.write(
+				It.is((message) => message === 'Error: Invalid RepoSetting object\n')
+			), Times.once());
 		});
 	});
 });

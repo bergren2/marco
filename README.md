@@ -1,5 +1,5 @@
-[![Build Status](https://api.travis-ci.org/rehret/marco.svg?branch=master)](https://travis-ci.org/rehret/marco)
-[![Coverage Status](https://coveralls.io/repos/github/rehret/marco/badge.svg?branch=master)](https://coveralls.io/github/rehret/marco?branch=master)
+[![Build Status](https://api.travis-ci.org/ceruleanlabs/marco.svg?branch=master)](https://travis-ci.org/ceruleanlabs/marco)
+[![Coverage Status](https://coveralls.io/repos/github/ceruleanlabs/marco/badge.svg?branch=master)](https://coveralls.io/github/ceruleanlabs/marco?branch=master)
 
 # Marco
 Simple CLI tool for fetching list of projects which are ready for a release.
@@ -19,7 +19,7 @@ marco
 ```
 
 ## Additional Info
-[Read the docs](https://github.com/rehret/marco/blob/master/docs/index.md)
+[Read the docs](docs/index.md)
 
 ## License
 [MIT](LICENSE)

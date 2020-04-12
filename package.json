@@ -27,7 +27,7 @@
     "build:production": "webpack --config webpack.production.js",
     "prepublishOnly": "yarn clean && yarn build:production",
     "start": "node bin/marco",
-    "clean": "n-clean dist"
+    "clean": "rimraf dist"
   },
   "dependencies": {
     "chalk": "^2.4.1",
@@ -50,7 +50,6 @@
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.1",
     "mocha": "^5.1.1",
-    "npm-build-tools": "^2.2.5",
     "nyc": "^15.0.1",
     "ts-node": "^6.0.3",
     "tslint": "^5.10.0",

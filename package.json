@@ -2,9 +2,9 @@
   "name": "marco-cli",
   "description": "Fetch list of projects which are ready for a release",
   "repository": "github:ceruleanlabs/marco",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "engines": {
-    "node": ">8.0.0"
+    "node": ">9.0.0"
   },
   "bin": {
     "marco": "bin/marco"

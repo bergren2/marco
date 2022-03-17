@@ -35,7 +35,7 @@
     "inversify": "^4.13.0",
     "reflect-metadata": "^0.1.12",
     "rimraf": "^2.6.2",
-    "simple-git": "^1.92.0"
+    "simple-git": "^3.3.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.3",
